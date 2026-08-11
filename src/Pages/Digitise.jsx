@@ -15,6 +15,8 @@ import {
   FileText,
 } from "lucide-react";
 
+const API_URL = import.meta.env.VITE_API_URL; 
+
 function Digitise() {
   const navigate = useNavigate();
   // =========================================================
@@ -690,7 +692,7 @@ const handleDigitise = async () => {
     );
 
     const digitiseResponse = await fetch(
-      "http://127.0.0.1:8000/api/digitize",
+    `${API_URL}/api/digitize`,
       {
         method: "POST",
         body: digitiseFormData,
