@@ -1,0 +1,219 @@
+/* ==========================
+   Feature Section
+========================== */
+
+.feature-section {
+
+    max-width: 1280px;
+
+    margin: 50px auto 80px;
+
+    padding: 0 32px;
+
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 24px;
+}
+
+/* ==========================
+   Card
+========================== */
+
+.feature-card {
+
+    background: #ffffff;
+
+    border: 1px solid #e6e9ee;
+
+    border-radius: 18px;
+
+    padding: 24px;
+
+    min-height: 170px;
+
+    transition: 0.3s ease;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: flex-start;
+}
+
+.feature-card:hover {
+
+    transform: translateY(-5px);
+
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+}
+
+/* ==========================
+   Header
+========================== */
+
+.feature-header {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 16px;
+
+    margin-bottom: 18px;
+}
+
+/* ==========================
+   Icon
+========================== */
+
+.feature-icon {
+
+    width: 52px;
+
+    height: 52px;
+
+    background: #edf4fb;
+
+    border-radius: 14px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    color: #4f7093;
+
+    flex-shrink: 0;
+}
+
+/* ==========================
+   Heading
+========================== */
+
+.feature-header h3 {
+
+    font-size: 20px;
+
+    font-weight: 700;
+
+    color: #111827;
+
+    margin: 0;
+
+    line-height: 1.2;
+}
+
+/* ==========================
+   Description
+========================== */
+
+.feature-card p {
+
+    font-size: 14px;
+
+    line-height: 1.7;
+
+    color: #667085;
+
+    margin: 0;
+
+    padding-left: 34px;
+
+    text-align: left;
+}
+
+/* ==========================
+   Responsive
+========================== */
+
+/* ==========================
+   Responsive
+========================== */
+
+/* Tablets */
+@media (max-width: 992px) {
+
+    .feature-section {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        padding: 0 24px;
+        margin: 50px auto 70px;
+    }
+
+    .feature-card {
+        min-height: 165px;
+        padding: 22px;
+    }
+
+    .feature-card p {
+        padding-left: 0;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+
+    .feature-section {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 0 20px;
+        margin: 40px auto 60px;
+    }
+
+    .feature-card {
+        min-height: auto;
+        padding: 20px;
+    }
+
+    .feature-header {
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+    .feature-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+    }
+
+    .feature-header h3 {
+        font-size: 18px;
+    }
+
+    .feature-card p {
+        font-size: 14px;
+        line-height: 1.6;
+        padding-left: 0;
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+
+    .feature-section {
+        padding: 0 16px;
+        gap: 16px;
+    }
+
+    .feature-card {
+        padding: 18px;
+        border-radius: 16px;
+    }
+
+    .feature-icon {
+        width: 42px;
+        height: 42px;
+    }
+
+    .feature-header h3 {
+        font-size: 17px;
+    }
+
+    .feature-card p {
+        font-size: 13px;
+        line-height: 1.6;
+    }
+}

@@ -1,0 +1,1055 @@
+/* =====================================================
+   DOCUMENT VIEWER
+===================================================== */
+
+.viewer-page {
+  width: 100%;
+  min-height: calc(100vh - 76px);
+
+  background: #f7f7f5;
+
+  padding: 42px 32px 60px;
+
+  box-sizing: border-box;
+}
+
+
+/* =====================================================
+   MAIN CONTAINER
+===================================================== */
+
+.viewer-container {
+  width: 80%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+
+/* =====================================================
+   TOP BAR
+===================================================== */
+
+.viewer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 22px;
+}
+
+
+/* =====================================================
+   BACK BUTTON
+===================================================== */
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  border: none;
+  background: transparent;
+
+  color: #526f8f;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  padding: 6px 0;
+}
+
+.back-btn:hover {
+  color: #111827;
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.doc-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 12px;
+}
+
+.file-type {
+  padding: 5px 9px;
+
+  border-radius: 6px;
+
+  background: #eef3f7;
+
+  color: #526f8f;
+
+  font-weight: 600;
+}
+
+.digitised-status {
+  padding: 5px 10px;
+
+  border-radius: 999px;
+
+  background: #edf7f1;
+
+  color: #41815e;
+
+  font-weight: 500;
+}
+
+
+/* =====================================================
+   HEADING
+===================================================== */
+
+.viewer-heading {
+  text-align: center;
+
+  margin-bottom: 28px;
+}
+
+.viewer-heading h1 {
+  margin: 0 0 7px;
+
+  font-size: 32px;
+  line-height: 1.25;
+
+  font-weight: 650;
+
+  color: #172033;
+
+  letter-spacing: -0.4px;
+}
+
+.viewer-heading p {
+  margin: 0;
+
+  font-size: 13px;
+  line-height: 1.6;
+
+  color: #77808d;
+}
+
+
+/* =====================================================
+   MAIN GRID
+===================================================== */
+
+.viewer-grid {
+  display: grid;
+
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+
+  gap: 18px;
+
+  align-items: start;
+}
+
+
+/* =====================================================
+   CARDS
+===================================================== */
+
+.viewer-card {
+  background: #ffffff;
+
+  border: 1px solid #e3e6e9;
+
+  border-radius: 14px;
+
+  padding: 12px;
+
+  box-sizing: border-box;
+
+  box-shadow:
+    0 4px 14px rgba(20, 30, 40, 0.04);
+}
+
+
+/* =====================================================
+   CARD HEADER
+===================================================== */
+
+.card-header {
+  min-height: 34px;
+
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 2px 2px 10px;
+}
+
+.card-header h3 {
+  margin: 0;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #273142;
+}
+
+
+/* =====================================================
+   HEADER ICONS
+===================================================== */
+
+.header-icons {
+  display: flex;
+  align-items: center;
+
+  gap: 4px;
+}
+
+.header-icons button {
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #e2e5e8;
+
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #77818d;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.header-icons button:hover {
+  background: #f4f6f8;
+
+  color: #526f8f;
+
+  border-color: #d6dce2;
+}
+
+
+/* =====================================================
+   IMAGE AREA
+===================================================== */
+
+.image-wrapper {
+  width: 100%;
+
+  height: 440px;
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  overflow: hidden;
+
+  background: #f8f8f8;
+
+  border: 1px solid #e7e9eb;
+
+  border-radius: 10px;
+
+  position: relative;
+}
+
+
+/* =====================================================
+   DOCUMENT
+===================================================== */
+
+.paper {
+  width: 72%;
+  max-width: 420px;
+
+  display: flex;
+  justify-content: center;
+
+  transform-origin: center center;
+
+  transition: transform 0.25s ease;
+
+  box-shadow:
+    0 3px 14px rgba(0, 0, 0, 0.08);
+}
+
+.paper img {
+  display: block;
+
+  width: 100%;
+  height: auto;
+
+  max-height: 390px;
+
+  object-fit: contain;
+}
+
+
+/* =====================================================
+   IMAGE FOOTER
+===================================================== */
+
+.image-footer {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 9px 2px 1px;
+}
+
+.image-footer span {
+  font-size: 11px;
+
+  color: #7d8792;
+}
+
+
+/* =====================================================
+   REPLACE IMAGE
+===================================================== */
+
+.replace-btn {
+  border: none;
+
+  background: transparent;
+
+  color: #526f8f;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+.replace-btn:hover {
+  text-decoration: underline;
+}
+
+
+/* =====================================================
+   CHECKBOX
+===================================================== */
+
+.checkbox {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  font-size: 10px;
+
+  color: #7b8490;
+
+  cursor: pointer;
+}
+
+.checkbox input {
+  width: 12px;
+  height: 12px;
+
+  accent-color: #526f8f;
+
+  cursor: pointer;
+}
+
+
+/* =====================================================
+   TEXT EDITOR
+===================================================== */
+
+.text-editor {
+  width: 100%;
+
+  height: 300px;
+
+  box-sizing: border-box;
+
+  resize: vertical;
+
+  border: 1px solid #e3e6e9;
+
+  border-radius: 10px;
+
+  background: #fcfcfc;
+
+  padding: 15px;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  line-height: 1.7;
+
+  color: #3f4b5a;
+
+  outline: none;
+}
+
+.text-editor:focus {
+  border-color: #9db1c5;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 3px rgba(82, 111, 143, 0.08);
+}
+
+.text-editor::placeholder {
+  color: #a1a8b0;
+}
+
+
+/* =====================================================
+   STATISTICS
+===================================================== */
+
+.stats {
+  display: flex;
+
+  align-items: center;
+
+  gap: 22px;
+
+  padding: 13px 2px 2px;
+}
+
+.stat-item {
+  display: flex;
+
+  align-items: baseline;
+
+  gap: 5px;
+}
+
+.stat-item strong {
+  font-size: 12px;
+
+  font-weight: 600;
+
+  color: #273142;
+}
+
+.stat-item span {
+  font-size: 10px;
+
+  color: #8a929c;
+}
+
+
+/* =====================================================
+   HINT
+===================================================== */
+
+.hint {
+  margin: 10px 0 12px;
+
+  text-align: center;
+
+  font-size: 9px;
+
+  color: #9299a2;
+}
+
+
+/* =====================================================
+   BUTTON GROUP
+   Copy = Left
+   Download = Right
+===================================================== */
+
+.button-group {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  width: 100%;
+
+  gap: 16px;
+}
+
+
+/* =====================================================
+   SECONDARY BUTTONS
+===================================================== */
+
+.secondary-btn {
+  height: 36px;
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  gap: 6px;
+
+  min-width: 145px;
+
+  border: 1px solid #e0e3e6;
+
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #596575;
+
+  font-size: 10px;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.secondary-btn:hover {
+  background: #f7f8f9;
+
+  border-color: #ccd2d8;
+
+  color: #273142;
+}
+
+
+/* =====================================================
+   DIGITISE AGAIN
+===================================================== */
+
+.again-btn {
+  width: 100%;
+
+  height: 36px;
+
+  margin-top: 8px;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background: #526f8f;
+
+  color: #ffffff;
+
+  font-size: 10px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.again-btn:hover {
+  background: #435f7d;
+}
+
+
+/* =====================================================
+   DOCUMENT NOT FOUND
+===================================================== */
+
+.document-not-found {
+  min-height: calc(100vh - 76px);
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+  align-items: center;
+
+  background: #f7f7f5;
+
+  text-align: center;
+}
+
+.document-not-found h2 {
+  margin-bottom: 8px;
+
+  color: #172033;
+}
+
+.document-not-found p {
+  color: #77808d;
+
+  font-size: 14px;
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 1100px) {
+
+  .viewer-page {
+    padding: 36px 24px 50px;
+  }
+
+  .viewer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .image-wrapper {
+    height: 460px;
+  }
+
+  .paper {
+    width: 55%;
+  }
+
+  .text-editor {
+    height: 330px;
+  }
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 700px) {
+
+  .viewer-page {
+    padding: 28px 16px 40px;
+  }
+
+  .viewer-top {
+    margin-bottom: 18px;
+  }
+
+  .viewer-heading {
+    text-align: left;
+
+    margin-bottom: 22px;
+  }
+
+  .viewer-heading h1 {
+    font-size: 24px;
+  }
+
+  .viewer-heading p {
+    font-size: 12px;
+  }
+
+  .viewer-grid {
+    grid-template-columns: 1fr;
+
+    gap: 14px;
+  }
+
+  .viewer-card {
+    padding: 10px;
+
+    border-radius: 12px;
+  }
+
+  .image-wrapper {
+    height: 350px;
+  }
+
+  .paper {
+    width: 70%;
+  }
+
+  .paper img {
+    max-height: 310px;
+  }
+
+  .card-header {
+    padding-bottom: 9px;
+  }
+
+  .card-header h3 {
+    font-size: 12px;
+  }
+
+  .text-editor {
+    height: 300px;
+
+    font-size: 13px;
+  }
+
+
+  /* Mobile button layout */
+
+  .button-group {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 8px;
+  }
+
+  .secondary-btn {
+    width: 100%;
+
+    min-width: 0;
+
+    height: 40px;
+  }
+
+  .again-btn {
+    height: 40px;
+  }
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media (max-width: 420px) {
+
+  .viewer-page {
+    padding: 24px 12px 35px;
+  }
+
+  .viewer-heading h1 {
+    font-size: 21px;
+  }
+
+  .viewer-heading p {
+    font-size: 11px;
+  }
+
+  .image-wrapper {
+    height: 300px;
+  }
+
+  .paper {
+    width: 75%;
+  }
+
+  .stats {
+    gap: 14px;
+  }
+
+  .stat-item strong {
+    font-size: 11px;
+  }
+
+  .stat-item span {
+    font-size: 9px;
+  }
+}
+
+
+
+
+
+
+/* =========================================================
+   DOCUMENT TITLE EDITOR
+========================================================= */
+
+.title-display-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.title-display-row h1 {
+    margin: 0;
+}
+
+.edit-title-btn {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid #d9e1e8;
+    border-radius: 9px;
+
+    background: #ffffff;
+    color: #587da5;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.edit-title-btn:hover {
+    background: #edf4fb;
+    border-color: #587da5;
+    color: #496d94;
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   TITLE EDIT MODE
+========================================================= */
+
+.title-edit-row {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+}
+
+.title-edit-input {
+    width: min(720px, 80%);
+
+    height: 50px;
+
+    padding: 0 16px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #587da5;
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    color: #111827;
+
+    font-size: 32px;
+    font-weight: 700;
+
+    text-align: center;
+
+    outline: none;
+
+    box-shadow:
+        0 0 0 3px rgba(88, 125, 165, 0.12);
+}
+
+.title-edit-input:focus {
+    border-color: #587da5;
+}
+
+
+/* =========================================================
+   TITLE CONFIRM BUTTON
+========================================================= */
+
+.title-confirm-btn,
+.title-cancel-btn {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.title-confirm-btn {
+    border: 1px solid #587da5;
+
+    background: #587da5;
+
+    color: #ffffff;
+}
+
+.title-confirm-btn:hover {
+    background: #496d94;
+
+    transform: translateY(-1px);
+}
+
+.title-cancel-btn {
+    border: 1px solid #d0d5dd;
+
+    background: #ffffff;
+
+    color: #667085;
+}
+
+.title-cancel-btn:hover {
+    background: #f9fafb;
+
+    color: #344054;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   SAVE MESSAGE
+========================================================= */
+
+.save-message {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    margin-top: 12px;
+
+    padding: 7px 12px;
+
+    border-radius: 8px;
+
+    background: #edf8f2;
+
+    color: #18794e;
+
+    font-size: 13px;
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   SAVE DOCUMENT BUTTON
+========================================================= */
+
+.save-document-btn {
+    width: 100%;
+
+    min-height: 46px;
+
+    margin-top: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #587da5;
+    color: #ffffff;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.save-document-btn:hover {
+    background: #496d94;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 10px rgba(73, 109, 148, 0.18);
+}
+
+.save-document-btn:active {
+    transform: translateY(0);
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 992px) {
+
+    .title-edit-input {
+        width: 75%;
+        font-size: 28px;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .title-display-row {
+        gap: 8px;
+    }
+
+    .title-display-row h1 {
+        font-size: 28px;
+    }
+
+    .edit-title-btn {
+        width: 34px;
+        height: 34px;
+    }
+
+    .title-edit-row {
+        flex-wrap: nowrap;
+    }
+
+    .title-edit-input {
+        width: 100%;
+        height: 46px;
+
+        font-size: 22px;
+    }
+
+    .title-confirm-btn,
+    .title-cancel-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+
+    .title-display-row {
+        justify-content: flex-start;
+    }
+
+    .title-display-row h1 {
+        font-size: 23px;
+        text-align: left;
+    }
+
+    .title-edit-row {
+        display: grid;
+
+        grid-template-columns: 1fr auto auto;
+
+        width: 100%;
+    }
+
+    .title-edit-input {
+        width: 100%;
+
+        font-size: 19px;
+
+        text-align: left;
+    }
+
+}

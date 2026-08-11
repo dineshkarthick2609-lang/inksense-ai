@@ -1,0 +1,748 @@
+/* =========================================
+   ABOUT PAGE
+========================================= */
+
+.about-page {
+    width: 100%;
+    min-height: 100vh;
+    background: hsl(60 2.3% 97%);
+    color: #172033;
+}
+
+
+/* =========================================
+   HERO
+========================================= */
+
+.about-hero {
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 90px 40px 70px;
+
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 70px;
+    align-items: center;
+}
+
+.about-hero-content {
+    max-width: 700px;
+}
+
+.about-eyebrow,
+.section-heading > span,
+.vision-content > span {
+    display: block;
+
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.6px;
+
+    color: #52769a;
+
+    margin-bottom: 18px;
+}
+
+.about-hero h1 {
+    margin: 0 0 25px;
+
+    font-size: 50px;
+    line-height: 1.08;
+    letter-spacing: -1.5px;
+
+    font-weight: 700;
+    color: #142033;
+}
+
+.about-hero h1 span {
+    color: #52779c;
+}
+
+.about-hero-content > p {
+    max-width: 650px;
+
+    margin: 0;
+
+    font-size: 17px;
+    line-height: 1.8;
+
+    color: #617086;
+}
+
+
+/* =========================================
+   HERO CARD
+========================================= */
+
+.about-hero-card {
+    background: #ffffff;
+
+    border: 1px solid #e0e5ea;
+    border-radius: 20px;
+
+    padding: 32px;
+
+    box-shadow:
+        0 10px 30px rgba(30, 50, 70, 0.05);
+}
+
+.hero-card-icon,
+.feature-icon,
+.user-icon {
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: #edf4fa;
+    color: #52779c;
+}
+
+.about-hero-card h3 {
+    margin: 22px 0 10px;
+
+    font-size: 22px;
+    color: #172033;
+}
+
+.about-hero-card p {
+    margin: 0;
+
+    font-size: 14px;
+    line-height: 1.7;
+
+    color: #68788c;
+}
+
+.hero-flow {
+    margin-top: 28px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: #52779c;
+}
+
+.hero-flow div {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    font-size: 12px;
+    color: #53667b;
+}
+
+.hero-flow > svg {
+    color: #a0acb8;
+}
+
+
+/* =========================================
+   COMMON SECTION
+========================================= */
+
+.about-section {
+    max-width: 1250px;
+
+    margin: 0 auto;
+    padding: 75px 40px;
+}
+
+.section-heading {
+    max-width: 100%;
+
+    margin-bottom: 42px;
+}
+
+.section-heading.centered {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.section-heading h2 {
+    margin: 0 0 18px;
+
+    font-size: 34px;
+    line-height: 1.2;
+
+    letter-spacing: -0.7px;
+
+    color: #172033;
+}
+
+.section-heading p {
+    margin: 0 0 12px;
+
+    font-size: 15px;
+    line-height: 1.8;
+
+    color: #66768a;
+}
+
+
+/* =========================================
+   FEATURE CARDS
+========================================= */
+
+.about-feature-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.about-feature-card {
+    background: #ffffff;
+
+    border: 1px solid #dfe5ea;
+    border-radius: 16px;
+
+    padding: 26px;
+
+    transition: transform 0.25s ease,
+                box-shadow 0.25s ease;
+}
+
+.about-feature-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 12px 28px rgba(30, 50, 70, 0.07);
+}
+
+.about-feature-card h3 {
+    margin: 20px 0 9px;
+
+    font-size: 18px;
+    color: #172033;
+}
+
+.about-feature-card p {
+    margin: 0;
+
+    font-size: 14px;
+    line-height: 1.7;
+
+    color: #68788c;
+}
+
+
+/* =========================================
+   WORKFLOW
+========================================= */
+
+.workflow-section {
+    max-width: 100%;
+    background: #f7f8f9;
+}
+
+.workflow-section > .section-heading,
+.workflow-section > .about-workflow {
+    max-width: 1170px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.about-workflow {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+}
+
+.workflow-card {
+    flex: 1;
+
+    background: #ffffff;
+
+    border: 1px solid #dfe5ea;
+    border-radius: 16px;
+
+    padding: 24px;
+
+    position: relative;
+}
+
+.workflow-number {
+    font-size: 11px;
+    font-weight: 600;
+
+    color: #91a2b4;
+
+    margin-bottom: 20px;
+}
+
+.workflow-card > svg {
+    color: #52779c;
+    margin-bottom: 15px;
+}
+
+.workflow-card h3 {
+    margin: 0 0 8px;
+
+    font-size: 17px;
+    color: #172033;
+}
+
+.workflow-card p {
+    margin: 0;
+
+    font-size: 13px;
+    line-height: 1.7;
+
+    color: #718094;
+}
+
+.workflow-line {
+    width: 25px;
+
+    align-self: center;
+
+    height: 1px;
+
+    background: #cbd3da;
+}
+
+
+/* =========================================
+   BENEFITS
+========================================= */
+
+.benefits-grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.benefit-card {
+    display: flex;
+    gap: 18px;
+
+    padding: 25px;
+
+    background: #ffffff;
+
+    border: 1px solid #dfe5ea;
+    border-radius: 16px;
+}
+
+.benefit-card > svg {
+    flex-shrink: 0;
+
+    color: #52779c;
+
+    margin-top: 3px;
+}
+
+.benefit-card h3 {
+    margin: 0 0 7px;
+
+    font-size: 17px;
+    color: #172033;
+}
+
+.benefit-card p {
+    margin: 0;
+
+    font-size: 14px;
+    line-height: 1.7;
+
+    color: #6b7a8d;
+}
+
+
+/* =========================================
+   USERS
+========================================= */
+
+.users-section {
+    padding-top: 30px;
+}
+
+.users-grid {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.user-card {
+    background: #ffffff;
+
+    border: 1px solid #dfe5ea;
+    border-radius: 16px;
+
+    padding: 25px;
+}
+
+.user-icon {
+    margin-bottom: 20px;
+}
+
+.user-card h3 {
+    margin: 0 0 8px;
+
+    font-size: 17px;
+    color: #172033;
+}
+
+.user-card p {
+    margin: 0;
+
+    font-size: 13px;
+    line-height: 1.7;
+
+    color: #6b7a8d;
+}
+
+
+/* =========================================
+   FUTURE VISION
+========================================= */
+
+.vision-section {
+    max-width: 1170px;
+
+    margin: 50px auto;
+
+    padding: 45px;
+
+    background: #edf4fa;
+
+    border: 1px solid #d7e2ec;
+    border-radius: 20px;
+}
+
+.vision-content {
+    max-width: 800px;
+}
+
+.vision-content h2 {
+    margin: 0 0 18px;
+
+    font-size: 34px;
+    color: #172033;
+}
+
+.vision-content p {
+    margin: 0 0 12px;
+
+    font-size: 15px;
+    line-height: 1.8;
+
+    color: #617086;
+}
+
+.vision-flow {
+    margin-top: 35px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+}
+
+.vision-flow > div {
+    flex: 1;
+
+    min-height: 95px;
+
+    padding: 18px;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: space-between;
+
+    background: #ffffff;
+
+    border: 1px solid #dce5ed;
+    border-radius: 14px;
+}
+
+.vision-flow > div span {
+    font-size: 11px;
+    color: #94a4b5;
+}
+
+.vision-flow > div svg {
+    color: #52779c;
+}
+
+.vision-flow strong {
+    font-size: 13px;
+    color: #263449;
+}
+
+.vision-flow > svg {
+    color: #8b9aaa;
+    flex-shrink: 0;
+}
+
+
+/* =========================================
+   CTA
+========================================= */
+
+.about-cta {
+    max-width: 1170px;
+
+    margin: 80px auto;
+
+    padding: 60px 40px;
+
+    text-align: center;
+
+    background: #172033;
+
+    border-radius: 22px;
+}
+
+.about-cta h2 {
+    max-width: 700px;
+
+    margin: 0 auto 15px;
+
+    font-size: 34px;
+    line-height: 1.25;
+
+    color: #ffffff;
+}
+
+.about-cta p {
+    max-width: 600px;
+
+    margin: 0 auto 28px;
+
+    font-size: 15px;
+    line-height: 1.7;
+
+    color: #b7c1ce;
+}
+
+.about-cta button {
+    border: none;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+
+    padding: 13px 22px;
+
+    border-radius: 9px;
+
+    background: #52779c;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.25s ease;
+}
+
+.about-cta button:hover {
+    background: #6288ad;
+    transform: translateY(-2px);
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 1024px) {
+
+    .about-hero {
+        grid-template-columns: 1fr;
+        gap: 35px;
+
+        padding-top: 70px;
+    }
+
+    .about-hero h1 {
+        font-size: 44px;
+    }
+
+    .about-feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .users-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .about-workflow {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .workflow-line {
+        display: none;
+    }
+
+    .vision-flow {
+        flex-wrap: wrap;
+    }
+
+    .vision-flow > div {
+        min-width: calc(50% - 30px);
+    }
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+
+    .about-hero {
+        padding: 55px 20px 45px;
+    }
+
+    .about-hero h1 {
+        font-size: 36px;
+        letter-spacing: -0.8px;
+    }
+
+    .about-hero-content > p {
+        font-size: 15px;
+    }
+
+    .about-hero-card {
+        padding: 25px;
+    }
+
+    .hero-flow {
+        flex-wrap: wrap;
+    }
+
+
+    .about-section {
+        padding: 55px 20px;
+    }
+
+    .section-heading h2 {
+        font-size: 29px;
+    }
+
+
+    .about-feature-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .about-workflow {
+        grid-template-columns: 1fr;
+    }
+
+    .workflow-card {
+        padding: 22px;
+    }
+
+
+    .benefits-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .users-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .vision-section {
+        margin: 30px 20px;
+
+        padding: 30px 22px;
+    }
+
+    .vision-content h2 {
+        font-size: 29px;
+    }
+
+    .vision-flow {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .vision-flow > div {
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .vision-flow > svg {
+        transform: rotate(90deg);
+        align-self: center;
+    }
+
+
+    .about-cta {
+        margin: 50px 20px;
+
+        padding: 45px 22px;
+    }
+
+    .about-cta h2 {
+        font-size: 28px;
+    }
+
+}
+
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 480px) {
+
+    .about-hero {
+        padding: 45px 16px 35px;
+    }
+
+    .about-hero h1 {
+        font-size: 31px;
+    }
+
+    .about-hero-card {
+        padding: 22px;
+    }
+
+    .about-section {
+        padding: 45px 16px;
+    }
+
+    .section-heading h2 {
+        font-size: 26px;
+    }
+
+    .about-feature-card,
+    .benefit-card,
+    .user-card {
+        padding: 21px;
+    }
+
+    .vision-section {
+        margin: 25px 16px;
+        padding: 25px 18px;
+    }
+
+    .about-cta {
+        margin: 40px 16px;
+        padding: 40px 20px;
+    }
+
+    .about-cta h2 {
+        font-size: 25px;
+    }
+
+}

@@ -1,0 +1,382 @@
+.hero {
+    max-width: 1280px;
+    margin: 70px auto 90px;
+    padding: 0 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 70px;
+}
+
+/* ==========================
+   LEFT
+========================== */
+
+.hero-left {
+    flex: 1;
+    max-width: 540px;
+}
+
+.hero-tag {
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #6b7f9d;
+    font-weight: 600;
+    margin-bottom: 22px;
+}
+
+.hero-title {
+    font-size: 40px;
+    line-height: 1.08;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 26px;
+    text-align: left;
+}
+
+.hero-description {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #5d6777;
+    margin-bottom: 36px;
+    text-align: left;
+}
+/* ==========================
+   BUTTONS
+========================== */
+
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+}
+
+.upload-btn,
+.camera-btn {
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    height: 54px;
+
+    padding: 0 26px;
+
+    border-radius: 12px;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: .25s;
+}
+
+.upload-btn {
+
+    border: none;
+
+    background: #4f7093;
+
+    color: white;
+}
+
+.upload-btn:hover {
+
+    background: #436484;
+}
+
+.camera-btn {
+
+    background: white;
+
+    border: 1px solid #d9dee7;
+
+    color: #1f2937;
+}
+
+.camera-btn:hover {
+
+    background: #f7f9fb;
+}
+
+/* ==========================
+   RIGHT
+========================== */
+
+.hero-right {
+
+    flex: 1;
+
+    display: flex;
+
+    justify-content: flex-end;
+}
+
+.preview-card {
+
+    width: 540px;
+
+    background: white;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 18px;
+
+    padding: 18px;
+
+    box-shadow:
+        0 4px 18px rgba(15, 23, 42, 0.04);
+}
+
+.preview-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(2,1fr);
+
+    gap: 14px;
+}
+
+.preview-box {
+
+    border: 1px solid #e7ebef;
+
+    border-radius: 14px;
+
+    padding: 18px;
+
+    min-height: 175px;
+}
+
+.preview-heading {
+
+    font-size: 13px;
+
+    letter-spacing: 1px;
+
+    color: #8693a7;
+
+    font-weight: 600;
+
+    margin-bottom: 22px;
+}
+
+/* ==========================
+   HANDWRITING LINES
+========================== */
+
+.fake-line {
+
+    height: 10px;
+
+    background: #e5e7eb;
+
+    border-radius: 20px;
+
+    margin-bottom: 14px;
+}
+
+.line1 {
+
+    width: 95%;
+}
+
+.line2 {
+
+    width: 78%;
+}
+
+.line3 {
+
+    width: 91%;
+}
+
+.line4 {
+
+    width: 58%;
+}
+
+.line5 {
+
+    width: 82%;
+}
+
+/* ==========================
+   EXTRACTED TEXT
+========================== */
+
+.preview-text {
+
+    font-size: 16px;
+
+    color: #4b5563;
+
+    line-height: 1.85;
+}
+
+/* ==========================
+   FOOTER
+========================== */
+
+.preview-footer {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 18px;
+
+    color: #5c6675;
+
+    font-size: 15px;
+}
+
+.status-dot {
+
+    width: 8px;
+
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: #4f7093;
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+/* ==========================
+   RESPONSIVE
+========================== */
+
+@media (max-width: 1100px) {
+
+    .hero {
+        flex-direction: column;
+        gap: 50px;
+        text-align: center;
+    }
+
+    .hero-left {
+        max-width: 100%;
+    }
+
+    .hero-title,
+    .hero-description {
+        text-align: center;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .hero-right {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .preview-card {
+        width: 100%;
+        max-width: 620px;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .hero {
+        margin: 50px auto;
+        padding: 0 20px;
+        gap: 40px;
+    }
+
+    .hero-tag {
+        font-size: 12px;
+        margin-bottom: 18px;
+    }
+
+    .hero-title {
+        font-size: 34px;
+        line-height: 1.2;
+        margin-bottom: 20px;
+    }
+
+    .hero-description {
+        font-size: 15px;
+        line-height: 1.7;
+        margin-bottom: 28px;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .upload-btn,
+    .camera-btn {
+        width: 100%;
+        height: 50px;
+    }
+
+    .preview-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .preview-box {
+        min-height: 150px;
+    }
+
+    .preview-heading {
+        margin-bottom: 16px;
+    }
+
+    .preview-text {
+        font-size: 15px;
+    }
+
+    .preview-footer {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .hero {
+        margin: 40px auto;
+        padding: 0 16px;
+        gap: 32px;
+    }
+
+    .hero-title {
+        font-size: 28px;
+    }
+
+    .hero-description {
+        font-size: 14px;
+    }
+
+    .preview-card {
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+    .preview-box {
+        padding: 16px;
+        min-height: 140px;
+    }
+
+    .upload-btn,
+    .camera-btn {
+        font-size: 15px;
+        height: 48px;
+    }
+
+    .preview-footer {
+        font-size: 13px;
+    }
+}
