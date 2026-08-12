@@ -12,7 +12,6 @@ import {
   Check,
   AlertCircle,
   Sparkles,
-  FileText,
 } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL; 
@@ -565,7 +564,7 @@ function Digitise() {
   // Convert captured image to File
   // =========================================================
 
-  const convertDataUrlToFile =
+{/*  const convertDataUrlToFile =
     async (dataUrl) => {
       const response =
         await fetch(dataUrl);
@@ -580,7 +579,7 @@ function Digitise() {
           type: "image/jpeg",
         }
       );
-    };
+    }; */}
 
   // =========================================================
   // DIGITISE WITH GEMINI
@@ -813,14 +812,13 @@ const handleDigitise = async () => {
     );
 
 
-    const saveResponse =
-      await fetch(
-        "http://127.0.0.1:8000/api/documents",
-        {
-          method: "POST",
-          body: saveFormData,
-        }
-      );
+    const saveResponse = await fetch(
+  `${API_URL}/api/documents`,
+  {
+    method: "POST",
+    body: saveFormData,
+  }
+);
 
 
     // =======================================================
@@ -1413,7 +1411,7 @@ const handleDigitise = async () => {
     Extracted Text
 ========================== */}
 
-{extractedText && (
+{/*  {extractedText && (
 
   <div className="gemini-result">
 
@@ -1439,7 +1437,7 @@ const handleDigitise = async () => {
 
   </div>
 
-)}
+)} */}
 
 
       {/* =====================================================
