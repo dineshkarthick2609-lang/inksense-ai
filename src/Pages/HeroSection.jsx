@@ -1,10 +1,17 @@
 import "./HeroSection.css";
 import { Upload, Camera } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 function HeroSection() {
- const handleUploadDocument = () => {
-  window.location.href = "/digitise";
-};
+  const navigate = useNavigate();
+
+  const handleUploadDocument = () => {
+    navigate("/digitise?mode=upload");
+  };
+
+  const handleTakePhoto = () => {
+    navigate("/digitise?mode=camera");
+  };
 
   return (
     <section className="hero">
@@ -37,14 +44,12 @@ function HeroSection() {
           </button>
 
           <button
-          className="camera-btn"
-          onClick={() => {
-            window.location.href = "/digitise?mode=camera";
-          }}
-        >
-          <Camera size={18} strokeWidth={2}/>
-          Take Photo
-        </button>
+            className="camera-btn"
+            onClick={handleTakePhoto}
+          >
+            <Camera size={18} strokeWidth={2} />
+            Take Photo
+          </button>
 
         </div>
 
