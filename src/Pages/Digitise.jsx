@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
+
 import { useNavigate } from "react-router-dom";
+
 import "./Digitise.css";
 
 import {
@@ -14,10 +16,11 @@ import {
   Sparkles,
 } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL; 
+const API_URL = import.meta.env.VITE_API_URL;
 
 function Digitise() {
   const navigate = useNavigate();
+
   // =========================================================
   // Active tab
   // =========================================================
@@ -49,15 +52,48 @@ function Digitise() {
     useState("environment");
   const [cameraCount, setCameraCount] = useState(0);
 
+  const [liveCameraMode, setLiveCameraMode] =
+    useState(false);
+
+  const [liveCapturedImage, setLiveCapturedImage] =
+    useState(null);
+
+  const [isLiveCapturing, setIsLiveCapturing] =
+    useState(false);
+
+  const [isLiveReviewing, setIsLiveReviewing] = useState(false);
+
+  const isLiveReviewingRef = useRef(false);
+
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+
+  // =========================================================
+  // Double-tap detection states
+  // =========================================================
+
+  const [tapCount, setTapCount] = useState(0);
+  const [tapDetectionStatus, setTapDetectionStatus] =
+    useState("Waiting for double tap...");
+
+  const tapDetectionFrameRef = useRef(null);
+  const previousFrameRef = useRef(null);
+  const lastMotionTimeRef = useRef(0);
+  const tapCountRef = useRef(0);
+  const motionStateRef = useRef("idle");
+  const motionStartTimeRef = useRef(0);
+  const lastDetectionRunRef = useRef(0);
 
   // =========================================================
   // Captured image states
   // =========================================================
 
-  const [capturedImage, setCapturedImage] = useState(null);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [capturedImage, setCapturedImage] =
+    useState(null);
+
+  const [showSaveDialog, setShowSaveDialog] =
+    useState(false);
+
   const [fileName, setFileName] = useState(
     "inkSense-document"
   );
@@ -66,7 +102,8 @@ function Digitise() {
   // Gemini / AI states
   // =========================================================
 
-  const [language, setLanguage] = useState("English");
+  const [language, setLanguage] =
+    useState("English");
 
   const [isDigitising, setIsDigitising] =
     useState(false);
@@ -138,8 +175,58 @@ function Digitise() {
   useEffect(() => {
     return () => {
       stopCamera();
+      stopDoubleTapDetection();
     };
   }, []);
+
+  // =========================================================
+  // Existing camera effect
+  // =========================================================
+
+  useEffect(() => {
+    if (
+      activeTab === "camera" &&
+      !cameraActive
+    ) {
+      startCamera();
+    }
+  }, [activeTab]);
+
+  // =========================================================
+  // Live Camera effect
+  // =========================================================
+
+  useEffect(() => {
+    if (activeTab === "live") {
+      startCamera();
+    }
+
+    return () => {
+      if (activeTab === "live") {
+        stopDoubleTapDetection();
+        stopCamera();
+      }
+    };
+  }, [activeTab]);
+
+  // =========================================================
+  // Start double-tap detection when Live Camera is active
+  // =========================================================
+
+  useEffect(() => {
+    if (
+      activeTab === "live" &&
+      cameraActive
+    ) {
+      startDoubleTapDetection();
+    } else {
+      stopDoubleTapDetection();
+    }
+
+    return () => {
+      stopDoubleTapDetection();
+    };
+  }, [activeTab, cameraActive]);
 
   // =========================================================
   // Open file picker
@@ -367,7 +454,11 @@ function Digitise() {
   };
 
   // =========================================================
-  // Capture image
+  // NORMAL CAMERA CAPTURE
+  //
+  // IMPORTANT:
+  // This only captures the image.
+  // It does NOT call handleDigitise().
   // =========================================================
 
   const handleCapture = () => {
@@ -427,6 +518,7 @@ function Digitise() {
     setExtractedText("");
     setDigitiseError("");
 
+    // Normal camera stops after capture
     stopCamera();
 
     setFileName(
@@ -435,6 +527,486 @@ function Digitise() {
 
     setShowSaveDialog(true);
   };
+
+  // =========================================================
+  // LIVE CAMERA CAPTURE
+  //
+  // This captures only the current frame.
+  // Camera remains active.
+  // It does NOT call handleDigitise().
+  // =========================================================
+
+const handleLiveCapture = () => {
+  if (!videoRef.current || isLiveReviewingRef.current) return;
+
+  // Lock immediately so another motion cannot trigger another capture
+  isLiveReviewingRef.current = true;
+
+  // Stop automatic double-tap detection
+  stopDoubleTapDetection();
+
+  setIsLiveCapturing(true);
+
+  const video = videoRef.current;
+  const canvas = document.createElement("canvas");
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    setIsLiveCapturing(false);
+    isLiveReviewingRef.current = false;
+    return;
+  }
+
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const imageData = canvas.toDataURL("image/jpeg", 0.92);
+
+  setLiveCapturedImage(imageData);
+  setExtractedText("");
+  setDigitiseError("");
+  setTapCount(0);
+
+  tapCountRef.current = 0;
+  previousFrameRef.current = null;
+  lastMotionTimeRef.current = 0;
+
+  setIsLiveCapturing(false);
+  setIsLiveReviewing(true);
+
+  setTapDetectionStatus(
+    "Image captured — review it before digitising or capturing again."
+  );
+};
+
+const handleLiveCaptureAgain = () => {
+  setLiveCapturedImage(null);
+  setExtractedText("");
+  setDigitiseError("");
+  setTapCount(0);
+
+  tapCountRef.current = 0;
+  previousFrameRef.current = null;
+  lastMotionTimeRef.current = 0;
+  motionStateRef.current = "idle";
+  motionStartTimeRef.current = 0;
+
+  isLiveReviewingRef.current = false;
+  setIsLiveReviewing(false);
+
+  setTapDetectionStatus(
+    "Waiting for pen double tap..."
+  );
+
+  if (activeTab === "live" && cameraActive) {
+    startDoubleTapDetection();
+  }
+};
+  // =========================================================
+  // DOUBLE TAP DETECTION
+  //
+  // Browser webcam frame-motion detection.
+  //
+  // The algorithm:
+  // 1. Reads the live webcam frames.
+  // 2. Checks motion in the central/lower camera area.
+  // 3. Detects a short motion burst.
+  // 4. Two short motion bursts within a short interval
+  //    are treated as a double tap.
+  //
+  // No MediaPipe required.
+  // =========================================================
+
+  const detectFrameMotion = (
+    video,
+    canvas,
+    context
+  ) => {
+    if (
+      !video ||
+      video.readyState < 2 ||
+      video.videoWidth === 0 ||
+      video.videoHeight === 0
+    ) {
+      return {
+        motionDetected: false,
+        motionStrength: 0,
+      };
+    }
+
+    // Smaller processing size improves performance
+    const width = 320;
+    const height = 180;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    context.drawImage(
+      video,
+      0,
+      0,
+      width,
+      height
+    );
+
+    const frame = context.getImageData(
+      0,
+      0,
+      width,
+      height
+    );
+
+    const data = frame.data;
+
+    // Central/lower region where the writing hand
+    // and paper are expected to appear.
+    const startX = Math.floor(
+      width * 0.15
+    );
+
+    const endX = Math.floor(
+      width * 0.85
+    );
+
+    const startY = Math.floor(
+      height * 0.15
+    );
+
+    const endY = Math.floor(
+      height * 0.90
+    );
+
+    // First frame
+    if (!previousFrameRef.current) {
+      previousFrameRef.current =
+        new Uint8ClampedArray(data);
+
+      return {
+        motionDetected: false,
+        motionStrength: 0,
+      };
+    }
+
+    const previous =
+      previousFrameRef.current;
+
+    let changedPixels = 0;
+    let totalDifference = 0;
+
+    const totalPixels =
+      (endX - startX) *
+      (endY - startY);
+
+    for (
+      let y = startY;
+      y < endY;
+      y += 3
+    ) {
+      for (
+        let x = startX;
+        x < endX;
+        x += 3
+      ) {
+        const index =
+          (y * width + x) * 4;
+
+        const currentGray =
+          (data[index] +
+            data[index + 1] +
+            data[index + 2]) /
+          3;
+
+        const previousGray =
+          (previous[index] +
+            previous[index + 1] +
+            previous[index + 2]) /
+          3;
+
+        const difference =
+          Math.abs(
+            currentGray -
+              previousGray
+          );
+
+        if (difference > 18) {
+          changedPixels++;
+          totalDifference +=
+            difference;
+        }
+      }
+    }
+
+    previousFrameRef.current =
+      new Uint8ClampedArray(data);
+
+    const changedRatio =
+      changedPixels /
+      Math.max(
+        1,
+        totalPixels / 9
+      );
+
+    const averageDifference =
+      totalDifference /
+      Math.max(1, changedPixels);
+
+    // Motion threshold
+    const motionDetected =
+      changedRatio > 0.025 &&
+      averageDifference > 20;
+
+    const motionStrength =
+      changedRatio *
+      averageDifference;
+
+    return {
+      motionDetected,
+      motionStrength,
+    };
+  };
+
+  // =========================================================
+  // Register one motion event as a possible tap
+  // =========================================================
+
+  const registerTapMotion = () => {
+    if (isLiveReviewingRef.current) return;
+    
+    const now = Date.now();
+
+    const DOUBLE_TAP_WINDOW = 1200;
+
+    // If previous tap is too old,
+    // start a new sequence.
+    if (
+      now -
+        lastMotionTimeRef.current >
+      DOUBLE_TAP_WINDOW
+    ) {
+      tapCountRef.current = 0;
+      setTapCount(0);
+    }
+
+    tapCountRef.current += 1;
+
+    const currentTapCount =
+      tapCountRef.current;
+
+    lastMotionTimeRef.current =
+      now;
+
+    setTapCount(
+      currentTapCount
+    );
+
+    if (currentTapCount === 1) {
+      setTapDetectionStatus(
+        "Tap detected — waiting for second tap..."
+      );
+
+      return;
+    }
+
+    if (currentTapCount >= 2) {
+      setTapDetectionStatus(
+        "Double tap detected — capturing..."
+      );
+
+      tapCountRef.current = 0;
+
+      setTapCount(0);
+
+      // Capture the current frame
+      handleLiveCapture();
+    }
+  };
+
+  // =========================================================
+  // Start double-tap detection
+  // =========================================================
+
+  const startDoubleTapDetection =
+    () => {
+      stopDoubleTapDetection();
+
+      previousFrameRef.current =
+        null;
+
+      tapCountRef.current = 0;
+
+      lastMotionTimeRef.current =
+        0;
+
+      motionStateRef.current =
+        "idle";
+
+      motionStartTimeRef.current =
+        0;
+
+      lastDetectionRunRef.current =
+        0;
+
+      setTapCount(0);
+
+      setTapDetectionStatus(
+        "Waiting for pen double tap..."
+      );
+
+      const canvas =
+        document.createElement(
+          "canvas"
+        );
+
+      const context =
+  canvas.getContext("2d", {
+    willReadFrequently: true,
+  });
+
+      if (!context) {
+        return;
+      }
+
+      const runDetection = (
+  timestamp
+) => {
+  if (
+    activeTab !== "live" ||
+    !cameraActive ||
+    !videoRef.current ||
+    isLiveReviewingRef.current
+  ) {
+    return;
+  } 
+
+        // Limit processing to roughly 12 FPS
+        if (
+          timestamp -
+            lastDetectionRunRef.current <
+          80
+        ) {
+          tapDetectionFrameRef.current =
+            requestAnimationFrame(
+              runDetection
+            );
+
+          return;
+        }
+
+        lastDetectionRunRef.current =
+          timestamp;
+
+        const result =
+          detectFrameMotion(
+            videoRef.current,
+            canvas,
+            context
+          );
+
+        const now = Date.now();
+
+        // Motion begins
+        if (
+          result.motionDetected &&
+          motionStateRef.current ===
+            "idle"
+        ) {
+          motionStateRef.current =
+            "moving";
+
+          motionStartTimeRef.current =
+            now;
+        }
+
+        // Motion ends
+        if (
+          !result.motionDetected &&
+          motionStateRef.current ===
+            "moving"
+        ) {
+          const motionDuration =
+            now -
+            motionStartTimeRef.current;
+
+          motionStateRef.current =
+            "idle";
+
+          // A tap is expected to be a short motion burst.
+          if (
+            motionDuration >= 50 &&
+            motionDuration <= 500
+          ) {
+            registerTapMotion();
+          }
+        }
+
+        // Safety reset for unusually long motion
+        if (
+          motionStateRef.current ===
+            "moving" &&
+          now -
+            motionStartTimeRef.current >
+            700
+        ) {
+          motionStateRef.current =
+            "idle";
+        }
+
+        // Reset old single tap
+        if (
+          tapCountRef.current === 1 &&
+          now -
+            lastMotionTimeRef.current >
+            1200
+        ) {
+          tapCountRef.current = 0;
+
+          setTapCount(0);
+
+          setTapDetectionStatus(
+            "Waiting for pen double tap..."
+          );
+        }
+
+        tapDetectionFrameRef.current =
+          requestAnimationFrame(
+            runDetection
+          );
+      };
+
+      tapDetectionFrameRef.current =
+        requestAnimationFrame(
+          runDetection
+        );
+    };
+
+  // =========================================================
+  // Stop double-tap detection
+  // =========================================================
+
+  const stopDoubleTapDetection =
+    () => {
+      if (
+        tapDetectionFrameRef.current
+      ) {
+        cancelAnimationFrame(
+          tapDetectionFrameRef.current
+        );
+
+        tapDetectionFrameRef.current =
+          null;
+      }
+
+      previousFrameRef.current =
+        null;
+
+      tapCountRef.current = 0;
+
+      motionStateRef.current =
+        "idle";
+    };
 
   // =========================================================
   // Switch mobile camera
@@ -513,6 +1085,7 @@ function Digitise() {
         document.createElement("a");
 
       link.href = capturedImage;
+
       link.download =
         finalFileName;
 
@@ -541,16 +1114,30 @@ function Digitise() {
   // Change tab
   // =========================================================
 
-  const handleTabChange = (
-    tab
-  ) => {
+  const handleTabChange = (tab) => {
     if (tab === activeTab) {
       return;
     }
 
-    // Stop camera when leaving camera tab
-    if (tab !== "camera") {
+    // Stop camera when leaving any camera mode
+    if (
+      tab !== "camera" &&
+      tab !== "live"
+    ) {
+      stopDoubleTapDetection();
       stopCamera();
+      setLiveCameraMode(false);
+    }
+
+    // Switching to normal camera
+    if (tab === "camera") {
+      stopDoubleTapDetection();
+      setLiveCameraMode(false);
+    }
+
+    // Switching to live camera
+    if (tab === "live") {
+      setLiveCameraMode(true);
     }
 
     setCameraError("");
@@ -561,392 +1148,410 @@ function Digitise() {
   };
 
   // =========================================================
-  // Convert captured image to File
+  // DIGITISE WITH GEMINI + SAVE DOCUMENT
+  //
+  // This is the ONLY function that sends the image
+  // to the backend / Gemini.
   // =========================================================
 
-{/*  const convertDataUrlToFile =
-    async (dataUrl) => {
-      const response =
-        await fetch(dataUrl);
+  const handleDigitise = async () => {
+    setDigitiseError("");
+    setExtractedText("");
 
-      const blob =
-        await response.blob();
+    let imageFile = null;
 
-      return new File(
-        [blob],
-        "inkSense-camera-capture.jpg",
-        {
-          type: "image/jpeg",
-        }
-      );
-    }; */}
+    // =========================================================
+    // 1. Get image from Upload tab
+    // =========================================================
 
-  // =========================================================
-  // DIGITISE WITH GEMINI
-  // =========================================================
+    if (activeTab === "upload") {
+      if (!selectedImage?.file) {
+        setDigitiseError(
+          "Please select a handwritten image first."
+        );
 
-  // =========================================================
-// DIGITISE WITH GEMINI + SAVE DOCUMENT
-// =========================================================
+        return;
+      }
 
-const handleDigitise = async () => {
-  setDigitiseError("");
-  setExtractedText("");
+      imageFile =
+        selectedImage.file;
+    }
 
-  let imageFile = null;
+    // =========================================================
+    // 2. Get image from Camera tab
+    // =========================================================
 
-  // =========================================================
-  // 1. Get image from Upload tab
-  // =========================================================
+    if (activeTab === "camera") {
+      if (!capturedImage) {
+        setDigitiseError(
+          "Please capture a handwritten document first."
+        );
 
-  if (activeTab === "upload") {
-    if (!selectedImage?.file) {
+        return;
+      }
+
+      try {
+        const response =
+          await fetch(
+            capturedImage
+          );
+
+        const blob =
+          await response.blob();
+
+        imageFile = new File(
+          [blob],
+          "inkSense-camera-capture.jpg",
+          {
+            type: "image/jpeg",
+          }
+        );
+      } catch (error) {
+        console.error(
+          "Camera image conversion failed:",
+          error
+        );
+
+        setDigitiseError(
+          "Unable to prepare the captured image."
+        );
+
+        return;
+      }
+    }
+
+    // =========================================================
+    // 3. Get image from Live Camera tab
+    // =========================================================
+
+    if (activeTab === "live") {
+      if (!liveCapturedImage) {
+        setDigitiseError(
+          "Please capture a handwritten document first."
+        );
+
+        return;
+      }
+
+      try {
+        const response =
+          await fetch(
+            liveCapturedImage
+          );
+
+        const blob =
+          await response.blob();
+
+        imageFile = new File(
+          [blob],
+          "inkSense-live-capture.jpg",
+          {
+            type: "image/jpeg",
+          }
+        );
+      } catch (error) {
+        console.error(
+          "Live camera image conversion failed:",
+          error
+        );
+
+        setDigitiseError(
+          "Unable to prepare the live camera image."
+        );
+
+        return;
+      }
+    }
+
+    // =========================================================
+    // Safety check
+    // =========================================================
+
+    if (!imageFile) {
       setDigitiseError(
-        "Please select a handwritten image first."
+        "Unable to prepare the document image."
       );
 
       return;
     }
 
-    imageFile = selectedImage.file;
-  }
+    // =========================================================
+    // Start processing
+    // =========================================================
 
-  // =========================================================
-  // 2. Get image from Camera tab
-  // =========================================================
-
-  if (activeTab === "camera") {
-    if (!capturedImage) {
-      setDigitiseError(
-        "Please capture a handwritten document first."
-      );
-
-      return;
-    }
+    setIsDigitising(true);
 
     try {
-      const response = await fetch(capturedImage);
+      // =======================================================
+      // STEP A — Send image to Gemini
+      // =======================================================
 
-      const blob = await response.blob();
+      const digitiseFormData =
+        new FormData();
 
-      imageFile = new File(
-        [blob],
-        "inkSense-camera-capture.jpg",
+      digitiseFormData.append(
+        "image",
+        imageFile
+      );
+
+      digitiseFormData.append(
+        "language",
+        language
+      );
+
+      console.log(
+        "Sending image to InkSense Gemini backend..."
+      );
+
+      const digitiseResponse =
+        await fetch(
+          `${API_URL}/api/digitize`,
+          {
+            method: "POST",
+            body: digitiseFormData,
+          }
+        );
+
+      // =======================================================
+      // Read Gemini response
+      // =======================================================
+
+      const digitiseResponseText =
+        await digitiseResponse.text();
+
+      console.log(
+        "InkSense digitisation response:",
+        digitiseResponseText
+      );
+
+      let digitiseData;
+
+      try {
+        digitiseData =
+          JSON.parse(
+            digitiseResponseText
+          );
+      } catch (error) {
+        console.error(
+          "Invalid JSON from digitisation endpoint:",
+          digitiseResponseText
+        );
+
+        throw new Error(
+          "Backend returned an invalid digitisation response."
+        );
+      }
+
+      console.log(
+        "Gemini digitisation result:",
+        digitiseData
+      );
+
+      // =======================================================
+      // Check Gemini result
+      // =======================================================
+
+      if (
+        !digitiseResponse.ok ||
+        !digitiseData.success
+      ) {
+        throw new Error(
+          digitiseData.error ||
+            "Digitisation failed."
+        );
+      }
+
+      const extractedText =
+        digitiseData.text?.trim() ||
+        "";
+
+      if (!extractedText) {
+        throw new Error(
+          "No handwritten text was detected."
+        );
+      }
+
+      // =======================================================
+      // Show extracted text temporarily
+      // =======================================================
+
+      setExtractedText(
+        extractedText
+      );
+
+      // =======================================================
+      // STEP B — Create document title
+      // =======================================================
+
+      let documentTitle =
+        imageFile.name
+          ? imageFile.name
+              .replace(
+                /\.[^/.]+$/,
+                ""
+              )
+              .replace(
+                /[_-]/g,
+                " "
+              )
+          : "Untitled Handwritten Document";
+
+      documentTitle =
+        documentTitle.trim() ||
+        "Untitled Handwritten Document";
+
+      // =======================================================
+      // STEP C — Save document to backend
+      // =======================================================
+
+      console.log(
+        "Saving digitised document..."
+      );
+
+      const saveFormData =
+        new FormData();
+
+      saveFormData.append(
+        "image",
+        imageFile
+      );
+
+      saveFormData.append(
+        "text",
+        extractedText
+      );
+
+      saveFormData.append(
+        "title",
+        documentTitle
+      );
+
+      saveFormData.append(
+        "language",
+        language
+      );
+
+      const saveResponse =
+        await fetch(
+          `${API_URL}/api/documents`,
+          {
+            method: "POST",
+            body: saveFormData,
+          }
+        );
+
+      // =======================================================
+      // Read save response
+      // =======================================================
+
+      const saveResponseText =
+        await saveResponse.text();
+
+      console.log(
+        "Document save response:",
+        saveResponseText
+      );
+
+      let saveData;
+
+      try {
+        saveData =
+          JSON.parse(
+            saveResponseText
+          );
+      } catch (error) {
+        console.error(
+          "Invalid JSON from document save endpoint:",
+          saveResponseText
+        );
+
+        throw new Error(
+          "Backend returned an invalid document save response."
+        );
+      }
+
+      // =======================================================
+      // Check save result
+      // =======================================================
+
+      if (
+        !saveResponse.ok ||
+        !saveData.success
+      ) {
+        throw new Error(
+          saveData.error ||
+            "Unable to save the document."
+        );
+      }
+
+      const savedDocument =
+        saveData.document;
+
+      console.log(
+        "Document saved successfully:",
+        savedDocument
+      );
+
+      // =======================================================
+      // STEP D — Navigate to Document Viewer
+      // =======================================================
+
+      navigate(
+        "/document/new",
         {
-          type: "image/jpeg",
+          state: {
+            title:
+              savedDocument?.title ||
+              documentTitle,
+
+            text:
+              savedDocument?.text ||
+              extractedText,
+
+            imageFile:
+              imageFile,
+
+            language:
+              savedDocument?.language ||
+              language,
+
+            type:
+              imageFile.type ||
+              "image/jpeg",
+
+            date:
+              savedDocument?.date ||
+              new Date().toLocaleDateString(
+                "en-IN",
+                {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }
+              ),
+
+            documentId:
+              savedDocument?.id ||
+              null,
+
+            saved: true,
+          },
         }
       );
     } catch (error) {
       console.error(
-        "Camera image conversion failed:",
+        "Digitisation / document save error:",
         error
       );
 
       setDigitiseError(
-        "Unable to prepare the captured image."
+        error.message ||
+          "Unable to process and save the document."
       );
-
-      return;
+    } finally {
+      setIsDigitising(false);
     }
-  }
-
-  // =========================================================
-  // Safety check
-  // =========================================================
-
-  if (!imageFile) {
-    setDigitiseError(
-      "Unable to prepare the document image."
-    );
-
-    return;
-  }
-
-  // =========================================================
-  // 3. Start processing
-  // =========================================================
-
-  setIsDigitising(true);
-
-  try {
-
-    // =======================================================
-    // STEP A — Send image to Gemini
-    // =======================================================
-
-    const digitiseFormData = new FormData();
-
-    digitiseFormData.append(
-      "image",
-      imageFile
-    );
-
-    digitiseFormData.append(
-      "language",
-      language
-    );
-
-    console.log(
-      "Sending image to InkSense Gemini backend..."
-    );
-
-    const digitiseResponse = await fetch(
-    `${API_URL}/api/digitize`,
-      {
-        method: "POST",
-        body: digitiseFormData,
-      }
-    );
-
-    // =======================================================
-    // Read Gemini response
-    // =======================================================
-
-    const digitiseResponseText =
-      await digitiseResponse.text();
-
-    console.log(
-      "InkSense digitisation response:",
-      digitiseResponseText
-    );
-
-    let digitiseData;
-
-    try {
-      digitiseData = JSON.parse(
-        digitiseResponseText
-      );
-    } catch (error) {
-      console.error(
-        "Invalid JSON from digitisation endpoint:",
-        digitiseResponseText
-      );
-
-      throw new Error(
-        "Backend returned an invalid digitisation response."
-      );
-    }
-
-    console.log(
-      "Gemini digitisation result:",
-      digitiseData
-    );
-
-    // =======================================================
-    // Check Gemini result
-    // =======================================================
-
-    if (
-      !digitiseResponse.ok ||
-      !digitiseData.success
-    ) {
-      throw new Error(
-        digitiseData.error ||
-        "Digitisation failed."
-      );
-    }
-
-    const extractedText =
-      digitiseData.text?.trim() || "";
-
-    if (!extractedText) {
-      throw new Error(
-        "No handwritten text was detected."
-      );
-    }
-
-    // =======================================================
-    // Show extracted text temporarily
-    // =======================================================
-
-    setExtractedText(
-      extractedText
-    );
-
-
-    // =======================================================
-    // STEP B — Create document title
-    // =======================================================
-
-    let documentTitle =
-      imageFile.name
-        ? imageFile.name
-            .replace(/\.[^/.]+$/, "")
-            .replace(/[_-]/g, " ")
-        : "Untitled Handwritten Document";
-
-    documentTitle =
-      documentTitle.trim() ||
-      "Untitled Handwritten Document";
-
-
-    // =======================================================
-    // STEP C — Save document to backend
-    // =======================================================
-
-    console.log(
-      "Saving digitised document..."
-    );
-
-    const saveFormData =
-      new FormData();
-
-    saveFormData.append(
-      "image",
-      imageFile
-    );
-
-    saveFormData.append(
-      "text",
-      extractedText
-    );
-
-    saveFormData.append(
-      "title",
-      documentTitle
-    );
-
-    saveFormData.append(
-      "language",
-      language
-    );
-
-
-    const saveResponse = await fetch(
-  `${API_URL}/api/documents`,
-  {
-    method: "POST",
-    body: saveFormData,
-  }
-);
-
-
-    // =======================================================
-    // Read save response
-    // =======================================================
-
-    const saveResponseText =
-      await saveResponse.text();
-
-    console.log(
-      "Document save response:",
-      saveResponseText
-    );
-
-
-    let saveData;
-
-    try {
-      saveData =
-        JSON.parse(
-          saveResponseText
-        );
-    } catch (error) {
-
-      console.error(
-        "Invalid JSON from document save endpoint:",
-        saveResponseText
-      );
-
-      throw new Error(
-        "Backend returned an invalid document save response."
-      );
-    }
-
-
-    // =======================================================
-    // Check save result
-    // =======================================================
-
-    if (
-      !saveResponse.ok ||
-      !saveData.success
-    ) {
-      throw new Error(
-        saveData.error ||
-        "Unable to save the document."
-      );
-    }
-
-
-    const savedDocument =
-      saveData.document;
-
-
-    console.log(
-      "Document saved successfully:",
-      savedDocument
-    );
-
-
-    // =======================================================
-    // STEP D — Navigate to Document Viewer
-    // =======================================================
-
-    navigate(
-      "/document/new",
-      {
-        state: {
-
-          title:
-            savedDocument?.title ||
-            documentTitle,
-
-          text:
-            savedDocument?.text ||
-            extractedText,
-
-          imageFile:
-            imageFile,
-
-          language:
-            savedDocument?.language ||
-            language,
-
-          type:
-            imageFile.type ||
-            "image/jpeg",
-
-          date:
-            savedDocument?.date ||
-            new Date().toLocaleDateString(
-              "en-IN",
-              {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              }
-            ),
-
-          documentId:
-            savedDocument?.id ||
-            null,
-
-          saved:
-            true,
-
-        },
-      }
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Digitisation / document save error:",
-      error
-    );
-
-    setDigitiseError(
-      error.message ||
-      "Unable to process and save the document."
-    );
-
-  } finally {
-
-    setIsDigitising(false);
-
-  }
-};
+  };
 
   // =========================================================
   // Render
@@ -960,7 +1565,6 @@ const handleDigitise = async () => {
       ===================================================== */}
 
       <div className="digitise-header">
-
         <h1>
           Digitise Handwriting
         </h1>
@@ -970,9 +1574,7 @@ const handleDigitise = async () => {
           or capture it using your device
           camera.
         </p>
-
       </div>
-
 
       {/* =====================================================
           Tabs
@@ -987,9 +1589,7 @@ const handleDigitise = async () => {
               : "tab"
           }
           onClick={() =>
-            handleTabChange(
-              "upload"
-            )
+            handleTabChange("upload")
           }
         >
           Upload Image
@@ -1002,30 +1602,37 @@ const handleDigitise = async () => {
               : "tab"
           }
           onClick={() =>
-            handleTabChange(
-              "camera"
-            )
+            handleTabChange("camera")
           }
         >
           Take Photo
         </button>
 
-      </div>
+        <button
+          className={
+            activeTab === "live"
+              ? "tab active"
+              : "tab"
+          }
+          onClick={() =>
+            handleTabChange("live")
+          }
+        >
+          Live Camera
+        </button>
 
+      </div>
 
       {/* =====================================================
           Upload Section
       ===================================================== */}
 
       {activeTab === "upload" && (
-
         <div
           id="upload-section"
           className="upload-wrapper"
         >
-
           {!selectedImage ? (
-
             <div className="upload-box">
 
               <div className="upload-icon">
@@ -1071,29 +1678,22 @@ const handleDigitise = async () => {
               </h4>
 
               {uploadError && (
-
                 <div className="upload-error">
-
                   <AlertCircle size={17} />
 
                   <span>
                     {uploadError}
                   </span>
-
                 </div>
-
               )}
 
             </div>
-
           ) : (
-
             <div className="selected-image-container">
 
               <div className="selected-image-header">
 
                 <div>
-
                   <p className="selected-image-label">
                     SELECTED DOCUMENT
                   </p>
@@ -1101,7 +1701,6 @@ const handleDigitise = async () => {
                   <h3>
                     {selectedImage.name}
                   </h3>
-
                 </div>
 
                 <button
@@ -1116,18 +1715,14 @@ const handleDigitise = async () => {
 
               </div>
 
-
               <div className="selected-image-preview">
-
                 <img
                   src={
                     selectedImage.url
                   }
                   alt="Selected handwritten document"
                 />
-
               </div>
-
 
               <div className="selected-image-actions">
 
@@ -1148,7 +1743,6 @@ const handleDigitise = async () => {
 
               </div>
 
-
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1160,20 +1754,15 @@ const handleDigitise = async () => {
               />
 
             </div>
-
           )}
-
         </div>
-
       )}
 
-
       {/* =====================================================
-          Camera Section
+          Normal Camera Section
       ===================================================== */}
 
       {activeTab === "camera" && (
-
         <div
           id="camera-section"
           className="camera-wrapper"
@@ -1193,7 +1782,6 @@ const handleDigitise = async () => {
           >
 
             {cameraActive ? (
-
               <video
                 ref={videoRef}
                 className="camera-video"
@@ -1201,9 +1789,7 @@ const handleDigitise = async () => {
                 playsInline
                 muted
               />
-
             ) : capturedImage ? (
-
               <div className="captured-preview-container">
 
                 <img
@@ -1218,12 +1804,15 @@ const handleDigitise = async () => {
                     setCapturedImage(
                       null
                     );
+
                     setExtractedText(
                       ""
                     );
+
                     setDigitiseError(
                       ""
                     );
+
                     startCamera();
                   }}
                 >
@@ -1232,9 +1821,7 @@ const handleDigitise = async () => {
                 </button>
 
               </div>
-
             ) : (
-
               <div className="camera-placeholder">
 
                 <Camera size={30} />
@@ -1250,16 +1837,13 @@ const handleDigitise = async () => {
                 </p>
 
               </div>
-
             )}
 
           </div>
 
-
           {/* Camera error */}
 
           {cameraError && (
-
             <div className="camera-error">
 
               <AlertCircle size={18} />
@@ -1269,9 +1853,7 @@ const handleDigitise = async () => {
               </span>
 
             </div>
-
           )}
-
 
           {/* Camera buttons */}
 
@@ -1305,147 +1887,319 @@ const handleDigitise = async () => {
 
           </div>
 
-
           <p className="camera-tip">
-
             {cameraActive
               ? "Position your handwritten document clearly inside the camera view."
               : "Place the document on a flat surface with good lighting."}
-
           </p>
 
         </div>
-
       )}
 
+      {/* =====================================================
+          Live Camera Section
+      ===================================================== */}
 
-        {/* =====================================================
-            AI Digitisation Panel
-        ===================================================== */}
+      {activeTab === "live" && (
+        <div
+          id="live-camera-section"
+          className="live-camera-wrapper"
+        >
 
-        {(selectedImage ||
-          capturedImage) && (
+          <div className="live-camera-header">
 
-          <div className="ai-digitise-panel">
+            <div>
 
-            <div className="ai-controls">
+              <p className="live-camera-label">
+                INKSENSE LIVE CAMERA
+              </p>
 
-              {/* ==============================
-                  Language Selection
-              ============================== */}
+              <h2>
+                Live Handwriting Capture
+              </h2>
 
-              <div className="language-control">
-
-                <label htmlFor="language">
-                  Document Language
-                </label>
-
-                <select
-                  id="language"
-                  value={language}
-                  onChange={(event) =>
-                    setLanguage(event.target.value)
-                  }
-                >
-                  <option value="English">
-                    English
-                  </option>
-
-                  <option value="Tamil">
-                    Tamil
-                  </option>
-
-                  <option value="English and Tamil">
-                    English + Tamil
-                  </option>
-                </select>
-
-              </div>
-
-
-              {/* ==============================
-                  Digitise With AI
-              ============================== */}
-
-              <button
-                type="button"
-                className="digitise-ai-btn"
-                onClick={handleDigitise}
-                disabled={isDigitising}
-              >
-
-                <Sparkles size={18} />
-
-                {isDigitising
-                  ? "Digitising..."
-                  : "Digitise with AI"}
-
-              </button>
+              <p>
+                Keep the camera active while
+                writing. Tap the pen on the
+                paper twice to capture the
+                current frame.
+              </p>
 
             </div>
 
+            <div className="live-camera-status">
 
-            {/* ==============================
-                AI Error
-            ============================== */}
+              <span className="live-status-dot"></span>
 
-            {digitiseError && (
+              Camera Active
 
-              <div className="digitise-error">
+            </div>
 
-                <AlertCircle size={18} />
+          </div>
 
-                <span>
-                  {digitiseError}
+          {/* Live camera preview */}
+
+          <div className="live-camera-preview">
+
+            {cameraActive ? (
+              <video
+                ref={videoRef}
+                className="live-camera-video"
+                autoPlay
+                playsInline
+                muted
+              />
+            ) : (
+              <div className="live-camera-placeholder">
+
+                <Camera size={32} />
+
+                <h3>
+                  Starting camera...
+                </h3>
+
+                <p>
+                  Please allow camera access.
+                </p>
+
+              </div>
+            )}
+
+          </div>
+
+          {/* Latest captured image */}
+
+          {liveCapturedImage && (
+            <div className="live-capture-result">
+
+              <div className="live-capture-result-header">
+
+                <div>
+
+                  <p className="live-capture-label">
+                    LATEST CAPTURE
+                  </p>
+
+                  <h3>
+                    Captured Handwriting
+                  </h3>
+
+                </div>
+
+                <span className="capture-success-badge">
+                  Captured
                 </span>
 
               </div>
 
-            )}
+              <div className="live-capture-image-wrapper">
+
+                <img
+                  src={liveCapturedImage}
+                  alt="Latest captured handwriting"
+                  className="live-capture-image"
+                />
+
+              </div>
+              <div className="live-review-actions">
+  <button
+    type="button"
+    onClick={handleLiveCaptureAgain}
+    className="secondary-button"
+  >
+    <RefreshCcw size={18} />
+    Capture Again
+  </button>
+
+  <p className="live-review-message">
+    Automatic capture is paused while you review this image.
+  </p>
+</div>
+
+            </div>
+          )}
+
+          {/* Camera error */}
+
+          {cameraError && (
+            <div className="camera-error">
+
+              <AlertCircle size={18} />
+
+              <span>
+                {cameraError}
+              </span>
+
+            </div>
+          )}
+
+          {/* =================================================
+              Live Camera Controls
+          ================================================= */}
+
+          <div className="live-camera-controls">
+
+            <div className="live-camera-info">
+
+              <span className="live-status-dot"></span>
+
+              <span>
+                {cameraActive
+                  ? tapDetectionStatus
+                  : "Camera is starting"}
+              </span>
+
+            </div>
+
+            {/* No Capture Frame button.
+                Double tap triggers capture. */}
+
+            <button
+              type="button"
+              className="live-stop-btn"
+              onClick={() => {
+                stopDoubleTapDetection();
+                stopCamera();
+
+                setLiveCameraMode(false);
+
+                setLiveCapturedImage(
+                  null
+                );
+
+                setTapCount(0);
+
+                setTapDetectionStatus(
+                  "Live camera stopped."
+                );
+              }}
+            >
+              Stop Live Camera
+            </button>
 
           </div>
+
+          {/* Double tap instruction */}
+
+          <p className="live-camera-tip">
+
+            <strong>
+              Double-tap capture:
+            </strong>{" "}
+            Keep the camera pointed at the
+            paper and tap the pen on the paper
+            twice quickly. The current frame
+            will be captured automatically.
+
+          </p>
+
+        </div>
       )}
 
+      {/* =====================================================
+          AI Digitisation Panel
+      ===================================================== */}
 
-      {/* ==========================
-    Extracted Text
-========================== */}
+      {(selectedImage ||
+        capturedImage ||
+        liveCapturedImage) && (
 
-{/*  {extractedText && (
+        <div className="ai-digitise-panel">
 
-  <div className="gemini-result">
+          <div className="ai-controls">
 
-    <div className="result-card">
+            {/* ==============================
+                Language Selection
+            ============================== */}
 
-      <div className="result-card-heading">
+            <div className="language-control">
 
-        <FileText size={19} />
+              <label htmlFor="language">
+                Document Language
+              </label>
 
-        <h3>
+              <select
+                id="language"
+                value={language}
+                onChange={(event) =>
+                  setLanguage(
+                    event.target.value
+                  )
+                }
+              >
+
+                <option value="English">
+                  English
+                </option>
+
+                <option value="Tamil">
+                  Tamil
+                </option>
+
+                <option value="English and Tamil">
+                  English + Tamil
+                </option>
+
+              </select>
+
+            </div>
+
+            {/* ==============================
+                Digitise With AI
+            ============================== */}
+
+            <button
+              type="button"
+              className="digitise-ai-btn"
+              onClick={
+                handleDigitise
+              }
+              disabled={
+                isDigitising
+              }
+            >
+
+              <Sparkles size={18} />
+
+              {isDigitising
+                ? "Digitising..."
+                : "Digitise with AI"}
+
+            </button>
+
+          </div>
+
+          {/* ==============================
+              AI Error
+          ============================== */}
+
+          {digitiseError && (
+            <div className="digitise-error">
+
+              <AlertCircle size={18} />
+
+              <span>
+                {digitiseError}
+              </span>
+
+            </div>
+          )}
+
+        </div>
+      )}
+
+      {/* =====================================================
           Extracted Text
-        </h3>
+      ===================================================== */}
 
-      </div>
-
-      <div className="transcription-content">
-
-        {extractedText}
-
-      </div>
-
-    </div>
-
-  </div>
-
-)} */}
-
+      {/* Extracted text display intentionally
+          remains disabled as in your original code. */}
 
       {/* =====================================================
           Save Captured Image Dialog
       ===================================================== */}
 
       {showSaveDialog && (
-
         <div className="save-dialog-overlay">
 
           <div className="save-dialog">
@@ -1459,13 +2213,9 @@ const handleDigitise = async () => {
               <X size={18} />
             </button>
 
-
             <div className="save-dialog-icon">
-
               <Image size={24} />
-
             </div>
-
 
             <h2>
               Save Captured Image
@@ -1475,7 +2225,6 @@ const handleDigitise = async () => {
               Give your captured document
               a name before saving it.
             </p>
-
 
             <label htmlFor="file-name">
               File name
@@ -1506,7 +2255,6 @@ const handleDigitise = async () => {
               .jpg
             </span>
 
-
             <div className="save-dialog-buttons">
 
               <button
@@ -1533,7 +2281,6 @@ const handleDigitise = async () => {
           </div>
 
         </div>
-
       )}
 
     </section>
