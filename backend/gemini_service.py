@@ -1,30 +1,73 @@
 import os
+import time
 from dotenv import load_dotenv
 from google import genai
 
-# Load environment variables
+
+# =========================================================
+# Load Environment Variables
+# =========================================================
+
 load_dotenv()
 
-# Get Gemini API key
+
+# =========================================================
+# Gemini API Key
+# =========================================================
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+
 if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY is not configured.")
+    raise RuntimeError(
+        "GEMINI_API_KEY is not configured."
+    )
 
-# Create Gemini client
-client = genai.Client(api_key=GEMINI_API_KEY)
 
+# =========================================================
+# Gemini Client
+# =========================================================
+
+client = genai.Client(
+    api_key=GEMINI_API_KEY
+)
+
+
+# =========================================================
+# Gemini Model
+# =========================================================
+
+MODEL_NAME = "gemini-3.5-flash-lite"
+
+
+# =========================================================
+# Gemini Test
+# =========================================================
 
 def test_gemini():
+
     response = client.models.generate_content(
-        model="gemini-3.1-flash-lite",
-        contents="Respond with exactly: InkSense Gemini API is working!"
+
+        model=MODEL_NAME,
+
+        contents=(
+            "Respond with exactly: "
+            "InkSense Gemini API is working!"
+        )
+
     )
 
     return response.text
 
 
-def digitize_handwriting(image_bytes, language="English"):
+# =========================================================
+# Digitize Handwriting
+# =========================================================
+
+def digitize_handwriting(
+    image_bytes,
+    language="English"
+):
 
     prompt = f"""
 You are the handwriting digitization engine for InkSense AI.
@@ -56,21 +99,148 @@ IMPORTANT RULES:
 Return only the transcription.
 """
 
-    response = client.models.generate_content(
-        model="gemini-3.1-flash-lite",
-        contents=[
-            {
-                "text": prompt
-            },
-            {
-                "inline_data": {
-                    "mime_type": "image/jpeg",
-                    "data": image_bytes
-                }
-            }
-        ]
+
+    # =====================================================
+    # Gemini Request
+    # =====================================================
+
+    max_attempts = 3
+
+    last_error = None
+
+
+    for attempt in range(1, max_attempts + 1):
+
+        try:
+
+            print(
+                f"InkSense Gemini request "
+                f"(attempt {attempt}/{max_attempts})..."
+            )
+
+            response = client.models.generate_content(
+
+                model=MODEL_NAME,
+
+                contents=[
+
+                    {
+                        "text": prompt
+                    },
+
+                    {
+                        "inline_data": {
+
+                            "mime_type": "image/jpeg",
+
+                            "data": image_bytes
+
+                        }
+                    }
+
+                ]
+
+            )
+
+
+            # =================================================
+            # Extract Response
+            # =================================================
+
+            extracted_text = (
+                response.text.strip()
+                if response.text
+                else ""
+            )
+
+
+            if not extracted_text:
+
+                raise ValueError(
+                    "Gemini returned an empty response."
+                )
+
+
+            print(
+                "InkSense Gemini digitisation successful."
+            )
+
+
+            return extracted_text
+
+
+        except Exception as e:
+
+            last_error = e
+
+            error_message = str(e)
+
+
+            print(
+                f"Gemini error on attempt "
+                f"{attempt}/{max_attempts}: "
+                f"{error_message}"
+            )
+
+
+            # =================================================
+            # Retry Temporary Errors
+            # =================================================
+
+            is_retryable = (
+
+                "503" in error_message
+
+                or
+
+                "UNAVAILABLE" in error_message
+
+                or
+
+                "500" in error_message
+
+                or
+
+                "INTERNAL" in error_message
+
+                or
+
+                "429" in error_message
+
+                or
+
+                "RESOURCE_EXHAUSTED" in error_message
+
+            )
+
+
+            if is_retryable and attempt < max_attempts:
+
+                wait_time = 2 ** attempt
+
+                print(
+                    f"Retrying Gemini request "
+                    f"in {wait_time} seconds..."
+                )
+
+                time.sleep(wait_time)
+
+                continue
+
+
+            # Non-retryable or final failure
+            raise
+
+
+    # =========================================================
+    # Final Failure
+    # =========================================================
+
+    if last_error:
+
+        raise last_error
+
+
+    raise RuntimeError(
+        "Gemini digitisation failed."
     )
-
-    extracted_text = response.text.strip()
-
-    return extracted_text
