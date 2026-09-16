@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-
 import { useNavigate } from "react-router-dom";
-
 import "./Digitise.css";
 
 import {
@@ -38,7 +36,6 @@ function Digitise() {
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadError, setUploadError] = useState("");
-
   const fileInputRef = useRef(null);
 
   // =========================================================
@@ -52,8 +49,7 @@ function Digitise() {
     useState("environment");
   const [cameraCount, setCameraCount] = useState(0);
 
-  const [liveCameraMode, setLiveCameraMode] =
-    useState(false);
+  const [liveCameraMode, setLiveCameraMode] = useState(false);
 
   const [liveCapturedImage, setLiveCapturedImage] =
     useState(null);
@@ -61,7 +57,8 @@ function Digitise() {
   const [isLiveCapturing, setIsLiveCapturing] =
     useState(false);
 
-  const [isLiveReviewing, setIsLiveReviewing] = useState(false);
+  const [isLiveReviewing, setIsLiveReviewing] =
+    useState(false);
 
   const isLiveReviewingRef = useRef(false);
 
@@ -69,19 +66,26 @@ function Digitise() {
   const streamRef = useRef(null);
 
   // =========================================================
-  // Double-tap detection states
+  // FIXED LIVE CAPTURE DETECTION STATES
   // =========================================================
 
   const [tapCount, setTapCount] = useState(0);
+
   const [tapDetectionStatus, setTapDetectionStatus] =
-    useState("Waiting for double tap...");
+    useState("Waiting for pen movement in the capture zone...");
 
   const tapDetectionFrameRef = useRef(null);
+
   const previousFrameRef = useRef(null);
+
   const lastMotionTimeRef = useRef(0);
+
   const tapCountRef = useRef(0);
+
   const motionStateRef = useRef("idle");
+
   const motionStartTimeRef = useRef(0);
+
   const lastDetectionRunRef = useRef(0);
 
   // =========================================================
@@ -180,7 +184,7 @@ function Digitise() {
   }, []);
 
   // =========================================================
-  // Existing camera effect
+  // Normal camera effect
   // =========================================================
 
   useEffect(() => {
@@ -193,7 +197,7 @@ function Digitise() {
   }, [activeTab]);
 
   // =========================================================
-  // Live Camera effect
+  // Live camera effect
   // =========================================================
 
   useEffect(() => {
@@ -210,7 +214,7 @@ function Digitise() {
   }, [activeTab]);
 
   // =========================================================
-  // Start double-tap detection when Live Camera is active
+  // Start fixed capture detection
   // =========================================================
 
   useEffect(() => {
@@ -255,7 +259,6 @@ function Digitise() {
     setDigitiseError("");
     setExtractedText("");
 
-    // Allowed image types
     const allowedTypes = [
       "image/jpeg",
       "image/png",
@@ -270,7 +273,6 @@ function Digitise() {
       return;
     }
 
-    // 10 MB limit
     const maxSize = 10 * 1024 * 1024;
 
     if (file.size > maxSize) {
@@ -291,7 +293,6 @@ function Digitise() {
       name: file.name,
     });
 
-    // Allow selecting the same file again
     event.target.value = "";
   };
 
@@ -322,7 +323,6 @@ function Digitise() {
     setCameraError("");
 
     try {
-      // Stop previous stream
       stopCamera();
 
       if (
@@ -331,7 +331,6 @@ function Digitise() {
         setCameraError(
           "Camera access is not supported by this browser."
         );
-
         return;
       }
 
@@ -340,13 +339,16 @@ function Digitise() {
           facingMode: {
             ideal: facingMode,
           },
+
           width: {
             ideal: 1920,
           },
+
           height: {
             ideal: 1080,
           },
         },
+
         audio: false,
       };
 
@@ -359,7 +361,6 @@ function Digitise() {
 
       setCameraActive(true);
 
-      // Count available cameras
       try {
         const devices =
           await navigator.mediaDevices.enumerateDevices();
@@ -377,7 +378,6 @@ function Digitise() {
         setCameraCount(0);
       }
 
-      // Attach stream after render
       setTimeout(() => {
         if (
           videoRef.current &&
@@ -455,10 +455,6 @@ function Digitise() {
 
   // =========================================================
   // NORMAL CAMERA CAPTURE
-  //
-  // IMPORTANT:
-  // This only captures the image.
-  // It does NOT call handleDigitise().
   // =========================================================
 
   const handleCapture = () => {
@@ -518,7 +514,6 @@ function Digitise() {
     setExtractedText("");
     setDigitiseError("");
 
-    // Normal camera stops after capture
     stopCamera();
 
     setFileName(
@@ -529,95 +524,139 @@ function Digitise() {
   };
 
   // =========================================================
-  // LIVE CAMERA CAPTURE
-  //
-  // This captures only the current frame.
-  // Camera remains active.
-  // It does NOT call handleDigitise().
+  // FIXED LIVE CAMERA CAPTURE
   // =========================================================
 
-const handleLiveCapture = () => {
-  if (!videoRef.current || isLiveReviewingRef.current) return;
+  const handleLiveCapture = () => {
+    if (
+      !videoRef.current ||
+      isLiveReviewingRef.current
+    ) {
+      return;
+    }
 
-  // Lock immediately so another motion cannot trigger another capture
-  isLiveReviewingRef.current = true;
+    const video = videoRef.current;
 
-  // Stop automatic double-tap detection
-  stopDoubleTapDetection();
+    if (
+      video.videoWidth === 0 ||
+      video.videoHeight === 0
+    ) {
+      return;
+    }
 
-  setIsLiveCapturing(true);
+    // Lock immediately
+    isLiveReviewingRef.current = true;
 
-  const video = videoRef.current;
-  const canvas = document.createElement("canvas");
+    // Stop detection
+    stopDoubleTapDetection();
 
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+    setIsLiveCapturing(true);
 
-  const context = canvas.getContext("2d");
+    const canvas =
+      document.createElement("canvas");
 
-  if (!context) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context =
+      canvas.getContext("2d");
+
+    if (!context) {
+      setIsLiveCapturing(false);
+      isLiveReviewingRef.current = false;
+      return;
+    }
+
+    context.drawImage(
+      video,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    const imageData =
+      canvas.toDataURL(
+        "image/jpeg",
+        0.92
+      );
+
+    setLiveCapturedImage(imageData);
+
+    setExtractedText("");
+    setDigitiseError("");
+
+    setTapCount(0);
+
+    tapCountRef.current = 0;
+
+    previousFrameRef.current = null;
+
+    lastMotionTimeRef.current = 0;
+
+    motionStateRef.current = "idle";
+
+    motionStartTimeRef.current = 0;
+
     setIsLiveCapturing(false);
-    isLiveReviewingRef.current = false;
-    return;
-  }
 
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    setIsLiveReviewing(true);
 
-  const imageData = canvas.toDataURL("image/jpeg", 0.92);
+    setTapDetectionStatus(
+      "Image captured — review it before digitising or capturing again."
+    );
+  };
 
-  setLiveCapturedImage(imageData);
-  setExtractedText("");
-  setDigitiseError("");
-  setTapCount(0);
-
-  tapCountRef.current = 0;
-  previousFrameRef.current = null;
-  lastMotionTimeRef.current = 0;
-
-  setIsLiveCapturing(false);
-  setIsLiveReviewing(true);
-
-  setTapDetectionStatus(
-    "Image captured — review it before digitising or capturing again."
-  );
-};
-
-const handleLiveCaptureAgain = () => {
-  setLiveCapturedImage(null);
-  setExtractedText("");
-  setDigitiseError("");
-  setTapCount(0);
-
-  tapCountRef.current = 0;
-  previousFrameRef.current = null;
-  lastMotionTimeRef.current = 0;
-  motionStateRef.current = "idle";
-  motionStartTimeRef.current = 0;
-
-  isLiveReviewingRef.current = false;
-  setIsLiveReviewing(false);
-
-  setTapDetectionStatus(
-    "Waiting for pen double tap..."
-  );
-
-  if (activeTab === "live" && cameraActive) {
-    startDoubleTapDetection();
-  }
-};
   // =========================================================
-  // DOUBLE TAP DETECTION
+  // Capture Again
+  // =========================================================
+
+  const handleLiveCaptureAgain = () => {
+    setLiveCapturedImage(null);
+
+    setExtractedText("");
+
+    setDigitiseError("");
+
+    setTapCount(0);
+
+    tapCountRef.current = 0;
+
+    previousFrameRef.current = null;
+
+    lastMotionTimeRef.current = 0;
+
+    motionStateRef.current = "idle";
+
+    motionStartTimeRef.current = 0;
+
+    isLiveReviewingRef.current = false;
+
+    setIsLiveReviewing(false);
+
+    setTapDetectionStatus(
+      "Waiting for pen movement in the capture zone..."
+    );
+
+    if (
+      activeTab === "live" &&
+      cameraActive
+    ) {
+      startDoubleTapDetection();
+    }
+  };
+
+  // =========================================================
+  // FIXED CAPTURE-ZONE MOTION DETECTION
   //
-  // Browser webcam frame-motion detection.
+  // The camera is divided into a fixed processing zone.
   //
-  // The algorithm:
-  // 1. Reads the live webcam frames.
-  // 2. Checks motion in the central/lower camera area.
-  // 3. Detects a short motion burst.
-  // 4. Two short motion bursts within a short interval
-  //    are treated as a double tap.
+  // Only movement inside this zone is considered.
   //
-  // No MediaPipe required.
+  // Random movements elsewhere are ignored.
+  //
+  // Two short movement bursts inside the fixed zone
+  // trigger the capture.
   // =========================================================
 
   const detectFrameMotion = (
@@ -637,7 +676,7 @@ const handleLiveCaptureAgain = () => {
       };
     }
 
-    // Smaller processing size improves performance
+    // Small processing frame for performance
     const width = 320;
     const height = 180;
 
@@ -652,34 +691,44 @@ const handleLiveCaptureAgain = () => {
       height
     );
 
-    const frame = context.getImageData(
-      0,
-      0,
-      width,
-      height
-    );
+    const frame =
+      context.getImageData(
+        0,
+        0,
+        width,
+        height
+      );
 
     const data = frame.data;
 
-    // Central/lower region where the writing hand
-    // and paper are expected to appear.
+    // =======================================================
+    // FIXED CAPTURE ZONE
+    //
+    // Horizontal:
+    // 30% -> 70%
+    //
+    // Vertical:
+    // 55% -> 90%
+    //
+    // This creates a fixed lower-center region.
+    // =======================================================
+
     const startX = Math.floor(
-      width * 0.15
+      width * 0.30
     );
 
     const endX = Math.floor(
-      width * 0.85
+      width * 0.70
     );
 
     const startY = Math.floor(
-      height * 0.15
+      height * 0.55
     );
 
     const endY = Math.floor(
       height * 0.90
     );
 
-    // First frame
     if (!previousFrameRef.current) {
       previousFrameRef.current =
         new Uint8ClampedArray(data);
@@ -694,11 +743,20 @@ const handleLiveCaptureAgain = () => {
       previousFrameRef.current;
 
     let changedPixels = 0;
+
     let totalDifference = 0;
 
-    const totalPixels =
-      (endX - startX) *
-      (endY - startY);
+    const sampledPixels =
+      Math.ceil(
+        (endX - startX) / 3
+      ) *
+      Math.ceil(
+        (endY - startY) / 3
+      );
+
+    // =======================================================
+    // Compare ONLY fixed capture zone
+    // =======================================================
 
     for (
       let y = startY;
@@ -731,8 +789,11 @@ const handleLiveCaptureAgain = () => {
               previousGray
           );
 
-        if (difference > 18) {
+        // Higher threshold prevents
+        // tiny camera noise from triggering.
+        if (difference > 25) {
           changedPixels++;
+
           totalDifference +=
             difference;
         }
@@ -746,17 +807,23 @@ const handleLiveCaptureAgain = () => {
       changedPixels /
       Math.max(
         1,
-        totalPixels / 9
+        sampledPixels
       );
 
     const averageDifference =
       totalDifference /
-      Math.max(1, changedPixels);
+      Math.max(
+        1,
+        changedPixels
+      );
 
-    // Motion threshold
+    // =======================================================
+    // STRICTER MOTION THRESHOLD
+    // =======================================================
+
     const motionDetected =
-      changedRatio > 0.025 &&
-      averageDifference > 20;
+      changedRatio > 0.08 &&
+      averageDifference > 25;
 
     const motionStrength =
       changedRatio *
@@ -769,17 +836,22 @@ const handleLiveCaptureAgain = () => {
   };
 
   // =========================================================
-  // Register one motion event as a possible tap
+  // Register one fixed-zone motion
   // =========================================================
 
   const registerTapMotion = () => {
-    if (isLiveReviewingRef.current) return;
-    
+    if (
+      isLiveReviewingRef.current
+    ) {
+      return;
+    }
+
     const now = Date.now();
 
+    // Two motions must happen within 1.2 seconds
     const DOUBLE_TAP_WINDOW = 1200;
 
-    // If previous tap is too old,
+    // If previous movement was too long ago,
     // start a new sequence.
     if (
       now -
@@ -787,6 +859,7 @@ const handleLiveCaptureAgain = () => {
       DOUBLE_TAP_WINDOW
     ) {
       tapCountRef.current = 0;
+
       setTapCount(0);
     }
 
@@ -802,30 +875,37 @@ const handleLiveCaptureAgain = () => {
       currentTapCount
     );
 
+    // =======================================================
+    // FIRST MOVEMENT
+    // =======================================================
+
     if (currentTapCount === 1) {
       setTapDetectionStatus(
-        "Tap detected — waiting for second tap..."
+        "First movement detected — make the second movement in the capture zone..."
       );
 
       return;
     }
 
+    // =======================================================
+    // SECOND MOVEMENT
+    // =======================================================
+
     if (currentTapCount >= 2) {
       setTapDetectionStatus(
-        "Double tap detected — capturing..."
+        "Fixed double movement detected — capturing..."
       );
 
       tapCountRef.current = 0;
 
       setTapCount(0);
 
-      // Capture the current frame
       handleLiveCapture();
     }
   };
 
   // =========================================================
-  // Start double-tap detection
+  // Start fixed-zone detection
   // =========================================================
 
   const startDoubleTapDetection =
@@ -852,7 +932,7 @@ const handleLiveCaptureAgain = () => {
       setTapCount(0);
 
       setTapDetectionStatus(
-        "Waiting for pen double tap..."
+        "Waiting for pen movement in the capture zone..."
       );
 
       const canvas =
@@ -861,27 +941,30 @@ const handleLiveCaptureAgain = () => {
         );
 
       const context =
-  canvas.getContext("2d", {
-    willReadFrequently: true,
-  });
+        canvas.getContext(
+          "2d",
+          {
+            willReadFrequently: true,
+          }
+        );
 
       if (!context) {
         return;
       }
 
       const runDetection = (
-  timestamp
-) => {
-  if (
-    activeTab !== "live" ||
-    !cameraActive ||
-    !videoRef.current ||
-    isLiveReviewingRef.current
-  ) {
-    return;
-  } 
+        timestamp
+      ) => {
+        if (
+          activeTab !== "live" ||
+          !cameraActive ||
+          !videoRef.current ||
+          isLiveReviewingRef.current
+        ) {
+          return;
+        }
 
-        // Limit processing to roughly 12 FPS
+        // Around 12 FPS
         if (
           timestamp -
             lastDetectionRunRef.current <
@@ -905,9 +988,13 @@ const handleLiveCaptureAgain = () => {
             context
           );
 
-        const now = Date.now();
+        const now =
+          Date.now();
 
+        // ===================================================
         // Motion begins
+        // ===================================================
+
         if (
           result.motionDetected &&
           motionStateRef.current ===
@@ -920,7 +1007,10 @@ const handleLiveCaptureAgain = () => {
             now;
         }
 
+        // ===================================================
         // Motion ends
+        // ===================================================
+
         if (
           !result.motionDetected &&
           motionStateRef.current ===
@@ -933,28 +1023,34 @@ const handleLiveCaptureAgain = () => {
           motionStateRef.current =
             "idle";
 
-          // A tap is expected to be a short motion burst.
+          // Only short movements count.
           if (
-            motionDuration >= 50 &&
-            motionDuration <= 500
+            motionDuration >= 70 &&
+            motionDuration <= 350
           ) {
             registerTapMotion();
           }
         }
 
-        // Safety reset for unusually long motion
+        // ===================================================
+        // Safety reset
+        // ===================================================
+
         if (
           motionStateRef.current ===
             "moving" &&
           now -
             motionStartTimeRef.current >
-            700
+            500
         ) {
           motionStateRef.current =
             "idle";
         }
 
-        // Reset old single tap
+        // ===================================================
+        // Reset old first movement
+        // ===================================================
+
         if (
           tapCountRef.current === 1 &&
           now -
@@ -966,7 +1062,7 @@ const handleLiveCaptureAgain = () => {
           setTapCount(0);
 
           setTapDetectionStatus(
-            "Waiting for pen double tap..."
+            "Waiting for pen movement in the capture zone..."
           );
         }
 
@@ -983,7 +1079,7 @@ const handleLiveCaptureAgain = () => {
     };
 
   // =========================================================
-  // Stop double-tap detection
+  // Stop fixed-zone detection
   // =========================================================
 
   const stopDoubleTapDetection =
@@ -1065,14 +1161,12 @@ const handleLiveCaptureAgain = () => {
           "inkSense-document";
       }
 
-      // Remove invalid filename characters
       finalFileName =
         finalFileName.replace(
           /[<>:"/\\|?*]/g,
           "-"
         );
 
-      // Add extension
       if (
         !finalFileName
           .toLowerCase()
@@ -1119,29 +1213,31 @@ const handleLiveCaptureAgain = () => {
       return;
     }
 
-    // Stop camera when leaving any camera mode
     if (
       tab !== "camera" &&
       tab !== "live"
     ) {
       stopDoubleTapDetection();
+
       stopCamera();
+
       setLiveCameraMode(false);
     }
 
-    // Switching to normal camera
     if (tab === "camera") {
       stopDoubleTapDetection();
+
       setLiveCameraMode(false);
     }
 
-    // Switching to live camera
     if (tab === "live") {
       setLiveCameraMode(true);
     }
 
     setCameraError("");
+
     setDigitiseError("");
+
     setExtractedText("");
 
     setActiveTab(tab);
@@ -1149,20 +1245,18 @@ const handleLiveCaptureAgain = () => {
 
   // =========================================================
   // DIGITISE WITH GEMINI + SAVE DOCUMENT
-  //
-  // This is the ONLY function that sends the image
-  // to the backend / Gemini.
   // =========================================================
 
   const handleDigitise = async () => {
     setDigitiseError("");
+
     setExtractedText("");
 
     let imageFile = null;
 
-    // =========================================================
-    // 1. Get image from Upload tab
-    // =========================================================
+    // =======================================================
+    // Upload
+    // =======================================================
 
     if (activeTab === "upload") {
       if (!selectedImage?.file) {
@@ -1177,9 +1271,9 @@ const handleLiveCaptureAgain = () => {
         selectedImage.file;
     }
 
-    // =========================================================
-    // 2. Get image from Camera tab
-    // =========================================================
+    // =======================================================
+    // Normal camera
+    // =======================================================
 
     if (activeTab === "camera") {
       if (!capturedImage) {
@@ -1220,9 +1314,9 @@ const handleLiveCaptureAgain = () => {
       }
     }
 
-    // =========================================================
-    // 3. Get image from Live Camera tab
-    // =========================================================
+    // =======================================================
+    // Live camera
+    // =======================================================
 
     if (activeTab === "live") {
       if (!liveCapturedImage) {
@@ -1263,9 +1357,9 @@ const handleLiveCaptureAgain = () => {
       }
     }
 
-    // =========================================================
+    // =======================================================
     // Safety check
-    // =========================================================
+    // =======================================================
 
     if (!imageFile) {
       setDigitiseError(
@@ -1275,16 +1369,16 @@ const handleLiveCaptureAgain = () => {
       return;
     }
 
-    // =========================================================
+    // =======================================================
     // Start processing
-    // =========================================================
+    // =======================================================
 
     setIsDigitising(true);
 
     try {
-      // =======================================================
+      // =====================================================
       // STEP A — Send image to Gemini
-      // =======================================================
+      // =====================================================
 
       const digitiseFormData =
         new FormData();
@@ -1312,10 +1406,6 @@ const handleLiveCaptureAgain = () => {
           }
         );
 
-      // =======================================================
-      // Read Gemini response
-      // =======================================================
-
       const digitiseResponseText =
         await digitiseResponse.text();
 
@@ -1342,15 +1432,6 @@ const handleLiveCaptureAgain = () => {
         );
       }
 
-      console.log(
-        "Gemini digitisation result:",
-        digitiseData
-      );
-
-      // =======================================================
-      // Check Gemini result
-      // =======================================================
-
       if (
         !digitiseResponse.ok ||
         !digitiseData.success
@@ -1371,17 +1452,13 @@ const handleLiveCaptureAgain = () => {
         );
       }
 
-      // =======================================================
-      // Show extracted text temporarily
-      // =======================================================
-
       setExtractedText(
         extractedText
       );
 
-      // =======================================================
+      // =====================================================
       // STEP B — Create document title
-      // =======================================================
+      // =====================================================
 
       let documentTitle =
         imageFile.name
@@ -1400,9 +1477,9 @@ const handleLiveCaptureAgain = () => {
         documentTitle.trim() ||
         "Untitled Handwritten Document";
 
-      // =======================================================
-      // STEP C — Save document to backend
-      // =======================================================
+      // =====================================================
+      // STEP C — Save document
+      // =====================================================
 
       console.log(
         "Saving digitised document..."
@@ -1440,10 +1517,6 @@ const handleLiveCaptureAgain = () => {
           }
         );
 
-      // =======================================================
-      // Read save response
-      // =======================================================
-
       const saveResponseText =
         await saveResponse.text();
 
@@ -1470,10 +1543,6 @@ const handleLiveCaptureAgain = () => {
         );
       }
 
-      // =======================================================
-      // Check save result
-      // =======================================================
-
       if (
         !saveResponse.ok ||
         !saveData.success
@@ -1487,14 +1556,9 @@ const handleLiveCaptureAgain = () => {
       const savedDocument =
         saveData.document;
 
-      console.log(
-        "Document saved successfully:",
-        savedDocument
-      );
-
-      // =======================================================
-      // STEP D — Navigate to Document Viewer
-      // =======================================================
+      // =====================================================
+      // STEP D — Navigate
+      // =====================================================
 
       navigate(
         "/document/new",
@@ -1716,12 +1780,14 @@ const handleLiveCaptureAgain = () => {
               </div>
 
               <div className="selected-image-preview">
+
                 <img
                   src={
                     selectedImage.url
                   }
                   alt="Selected handwritten document"
                 />
+
               </div>
 
               <div className="selected-image-actions">
@@ -1801,18 +1867,9 @@ const handleLiveCaptureAgain = () => {
                 <button
                   className="retake-btn"
                   onClick={() => {
-                    setCapturedImage(
-                      null
-                    );
-
-                    setExtractedText(
-                      ""
-                    );
-
-                    setDigitiseError(
-                      ""
-                    );
-
+                    setCapturedImage(null);
+                    setExtractedText("");
+                    setDigitiseError("");
                     startCamera();
                   }}
                 >
@@ -1841,8 +1898,6 @@ const handleLiveCaptureAgain = () => {
 
           </div>
 
-          {/* Camera error */}
-
           {cameraError && (
             <div className="camera-error">
 
@@ -1854,8 +1909,6 @@ const handleLiveCaptureAgain = () => {
 
             </div>
           )}
-
-          {/* Camera buttons */}
 
           <div className="camera-buttons">
 
@@ -1897,7 +1950,7 @@ const handleLiveCaptureAgain = () => {
       )}
 
       {/* =====================================================
-          Live Camera Section
+          LIVE CAMERA SECTION
       ===================================================== */}
 
       {activeTab === "live" && (
@@ -1920,9 +1973,9 @@ const handleLiveCaptureAgain = () => {
 
               <p>
                 Keep the camera active while
-                writing. Tap the pen on the
-                paper twice to capture the
-                current frame.
+                writing. Move the pen twice
+                inside the fixed capture zone
+                to capture the current frame.
               </p>
 
             </div>
@@ -1937,18 +1990,42 @@ const handleLiveCaptureAgain = () => {
 
           </div>
 
-          {/* Live camera preview */}
+          {/* =================================================
+              Live camera preview
+          ================================================= */}
 
           <div className="live-camera-preview">
 
             {cameraActive ? (
-              <video
-                ref={videoRef}
-                className="live-camera-video"
-                autoPlay
-                playsInline
-                muted
-              />
+              <>
+
+                <video
+                  ref={videoRef}
+                  className="live-camera-video"
+                  autoPlay
+                  playsInline
+                  muted
+                />
+
+                {/* ===========================================
+                    FIXED CAPTURE ZONE
+                =========================================== */}
+
+                {!isLiveReviewing && (
+                  <div className="fixed-capture-zone">
+
+                    <div className="fixed-capture-zone-inner">
+
+                      <span>
+                        CAPTURE ZONE
+                      </span>
+
+                    </div>
+
+                  </div>
+                )}
+
+              </>
             ) : (
               <div className="live-camera-placeholder">
 
@@ -1967,7 +2044,9 @@ const handleLiveCaptureAgain = () => {
 
           </div>
 
-          {/* Latest captured image */}
+          {/* =================================================
+              Latest captured image
+          ================================================= */}
 
           {liveCapturedImage && (
             <div className="live-capture-result">
@@ -2001,25 +2080,33 @@ const handleLiveCaptureAgain = () => {
                 />
 
               </div>
-              <div className="live-review-actions">
-  <button
-    type="button"
-    onClick={handleLiveCaptureAgain}
-    className="secondary-button"
-  >
-    <RefreshCcw size={18} />
-    Capture Again
-  </button>
 
-  <p className="live-review-message">
-    Automatic capture is paused while you review this image.
-  </p>
-</div>
+              <div className="live-review-actions">
+
+                <button
+                  type="button"
+                  onClick={
+                    handleLiveCaptureAgain
+                  }
+                  className="secondary-button"
+                >
+                  <RefreshCcw size={18} />
+                  Capture Again
+                </button>
+
+                <p className="live-review-message">
+                  Automatic capture is paused
+                  while you review this image.
+                </p>
+
+              </div>
 
             </div>
           )}
 
-          {/* Camera error */}
+          {/* =================================================
+              Camera error
+          ================================================= */}
 
           {cameraError && (
             <div className="camera-error">
@@ -2051,14 +2138,13 @@ const handleLiveCaptureAgain = () => {
 
             </div>
 
-            {/* No Capture Frame button.
-                Double tap triggers capture. */}
-
             <button
               type="button"
               className="live-stop-btn"
               onClick={() => {
+
                 stopDoubleTapDetection();
+
                 stopCamera();
 
                 setLiveCameraMode(false);
@@ -2072,6 +2158,7 @@ const handleLiveCaptureAgain = () => {
                 setTapDetectionStatus(
                   "Live camera stopped."
                 );
+
               }}
             >
               Stop Live Camera
@@ -2079,17 +2166,20 @@ const handleLiveCaptureAgain = () => {
 
           </div>
 
-          {/* Double tap instruction */}
+          {/* =================================================
+              Fixed capture instruction
+          ================================================= */}
 
           <p className="live-camera-tip">
 
             <strong>
-              Double-tap capture:
+              Fixed capture:
             </strong>{" "}
-            Keep the camera pointed at the
-            paper and tap the pen on the paper
-            twice quickly. The current frame
-            will be captured automatically.
+            Keep the pen inside the
+            highlighted capture zone and
+            make two quick short movements.
+            Movements outside the zone are
+            ignored.
 
           </p>
 
@@ -2107,10 +2197,6 @@ const handleLiveCaptureAgain = () => {
         <div className="ai-digitise-panel">
 
           <div className="ai-controls">
-
-            {/* ==============================
-                Language Selection
-            ============================== */}
 
             <div className="language-control">
 
@@ -2144,10 +2230,6 @@ const handleLiveCaptureAgain = () => {
 
             </div>
 
-            {/* ==============================
-                Digitise With AI
-            ============================== */}
-
             <button
               type="button"
               className="digitise-ai-btn"
@@ -2169,10 +2251,6 @@ const handleLiveCaptureAgain = () => {
 
           </div>
 
-          {/* ==============================
-              AI Error
-          ============================== */}
-
           {digitiseError && (
             <div className="digitise-error">
 
@@ -2187,13 +2265,6 @@ const handleLiveCaptureAgain = () => {
 
         </div>
       )}
-
-      {/* =====================================================
-          Extracted Text
-      ===================================================== */}
-
-      {/* Extracted text display intentionally
-          remains disabled as in your original code. */}
 
       {/* =====================================================
           Save Captured Image Dialog
