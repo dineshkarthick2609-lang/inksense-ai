@@ -10,11 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-<<<<<<< HEAD
-    "@supabase/supabase-js": "^2.116.0",
-=======
     "@mediapipe/tasks-vision": "^1.0.1",
->>>>>>> 5283a424eb24b742f42513af7f4817aa6debd1de
+    "@supabase/supabase-js": "^2.116.0",
     "lucide-react": "^1.28.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
