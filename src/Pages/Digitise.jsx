@@ -19,6 +19,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 function Digitise() {
   const navigate = useNavigate();
+<<<<<<< HEAD
+=======
   const {
     user,
     session,
@@ -36,6 +38,7 @@ function Digitise() {
 
   const isAddingPage =
     Boolean(existingDocumentId);
+>>>>>>> 6b34ae2 (Update backend)
 
   // =========================================================
   // Active tab
@@ -1263,6 +1266,74 @@ function Digitise() {
   // DIGITISE WITH GEMINI + SAVE DOCUMENT
   // =========================================================
 
+<<<<<<< HEAD
+  const handleDigitise = async () => {
+    setDigitiseError("");
+
+    setExtractedText("");
+
+    let imageFile = null;
+
+    // =======================================================
+    // Upload
+    // =======================================================
+
+    if (activeTab === "upload") {
+      if (!selectedImage?.file) {
+        setDigitiseError(
+          "Please select a handwritten image first."
+        );
+
+        return;
+      }
+
+      imageFile =
+        selectedImage.file;
+    }
+
+    // =======================================================
+    // Normal camera
+    // =======================================================
+
+    if (activeTab === "camera") {
+      if (!capturedImage) {
+        setDigitiseError(
+          "Please capture a handwritten document first."
+        );
+
+        return;
+      }
+
+      try {
+        const response =
+          await fetch(
+            capturedImage
+          );
+
+        const blob =
+          await response.blob();
+
+        imageFile = new File(
+          [blob],
+          "inkSense-camera-capture.jpg",
+          {
+            type: "image/jpeg",
+          }
+        );
+      } catch (error) {
+        console.error(
+          "Camera image conversion failed:",
+          error
+        );
+
+        setDigitiseError(
+          "Unable to prepare the captured image."
+        );
+
+        return;
+      }
+    }
+=======
   const handleDigitise =
     async () => {
       setDigitiseError("");
@@ -1324,6 +1395,7 @@ function Digitise() {
           return;
         }
       }
+>>>>>>> 6b34ae2 (Update backend)
 
     // =======================================================
     // Live camera
@@ -1368,6 +1440,159 @@ function Digitise() {
       }
     }
 
+<<<<<<< HEAD
+    // =======================================================
+    // Safety check
+    // =======================================================
+
+    if (!imageFile) {
+      setDigitiseError(
+        "Unable to prepare the document image."
+      );
+
+      return;
+    }
+
+    // =======================================================
+    // Start processing
+    // =======================================================
+
+    setIsDigitising(true);
+
+    try {
+      // =====================================================
+      // STEP A — Send image to Gemini
+      // =====================================================
+
+      const digitiseFormData =
+        new FormData();
+
+      digitiseFormData.append(
+        "image",
+        imageFile
+      );
+
+      digitiseFormData.append(
+        "language",
+        language
+      );
+
+      console.log(
+        "Sending image to InkSense Gemini backend..."
+      );
+
+      const digitiseResponse =
+        await fetch(
+          `${API_URL}/api/digitize`,
+          {
+            method: "POST",
+            body: digitiseFormData,
+          }
+        );
+
+      const digitiseResponseText =
+        await digitiseResponse.text();
+
+      console.log(
+        "InkSense digitisation response:",
+        digitiseResponseText
+      );
+
+      let digitiseData;
+
+      try {
+        digitiseData =
+          JSON.parse(
+            digitiseResponseText
+          );
+      } catch (error) {
+        console.error(
+          "Invalid JSON from digitisation endpoint:",
+          digitiseResponseText
+        );
+
+        throw new Error(
+          "Backend returned an invalid digitisation response."
+        );
+      }
+
+      if (
+        !digitiseResponse.ok ||
+        !digitiseData.success
+      ) {
+        throw new Error(
+          digitiseData.error ||
+            "Digitisation failed."
+        );
+      }
+
+      const extractedText =
+        digitiseData.text?.trim() ||
+        "";
+
+      if (!extractedText) {
+        throw new Error(
+          "No handwritten text was detected."
+        );
+      }
+
+      setExtractedText(
+        extractedText
+      );
+
+      // =====================================================
+      // STEP B — Create document title
+      // =====================================================
+
+      let documentTitle =
+        imageFile.name
+          ? imageFile.name
+              .replace(
+                /\.[^/.]+$/,
+                ""
+              )
+              .replace(
+                /[_-]/g,
+                " "
+              )
+          : "Untitled Handwritten Document";
+
+      documentTitle =
+        documentTitle.trim() ||
+        "Untitled Handwritten Document";
+
+      // =====================================================
+      // STEP C — Save document
+      // =====================================================
+
+      console.log(
+        "Saving digitised document..."
+      );
+
+      const saveFormData =
+        new FormData();
+
+      saveFormData.append(
+        "image",
+        imageFile
+      );
+
+      saveFormData.append(
+        "text",
+        extractedText
+      );
+
+      saveFormData.append(
+        "title",
+        documentTitle
+      );
+
+      saveFormData.append(
+        "language",
+        language
+      );
+
+=======
       // =======================================================
       // Safety check
       // =======================================================
@@ -1631,18 +1856,123 @@ function Digitise() {
           "user_id",
           userId
         );
+>>>>>>> 6b34ae2 (Update backend)
       const saveResponse =
         await fetch(
           `${API_URL}/api/documents`,
           {
             method: "POST",
+<<<<<<< HEAD
+=======
             headers: {
               Authorization: `Bearer ${session?.access_token}`,
             },
+>>>>>>> 6b34ae2 (Update backend)
             body: saveFormData,
           }
         );
 
+<<<<<<< HEAD
+      const saveResponseText =
+        await saveResponse.text();
+
+      console.log(
+        "Document save response:",
+        saveResponseText
+      );
+
+      let saveData;
+
+      try {
+        saveData =
+          JSON.parse(
+            saveResponseText
+          );
+      } catch (error) {
+        console.error(
+          "Invalid JSON from document save endpoint:",
+          saveResponseText
+        );
+
+        throw new Error(
+          "Backend returned an invalid document save response."
+        );
+      }
+
+      if (
+        !saveResponse.ok ||
+        !saveData.success
+      ) {
+        throw new Error(
+          saveData.error ||
+            "Unable to save the document."
+        );
+      }
+
+      const savedDocument =
+        saveData.document;
+
+      // =====================================================
+      // STEP D — Navigate
+      // =====================================================
+
+      navigate(
+        "/document/new",
+        {
+          state: {
+            title:
+              savedDocument?.title ||
+              documentTitle,
+
+            text:
+              savedDocument?.text ||
+              extractedText,
+
+            imageFile:
+              imageFile,
+
+            language:
+              savedDocument?.language ||
+              language,
+
+            type:
+              imageFile.type ||
+              "image/jpeg",
+
+            date:
+              savedDocument?.date ||
+              new Date().toLocaleDateString(
+                "en-IN",
+                {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }
+              ),
+
+            documentId:
+              savedDocument?.id ||
+              null,
+
+            saved: true,
+          },
+        }
+      );
+    } catch (error) {
+      console.error(
+        "Digitisation / document save error:",
+        error
+      );
+
+      setDigitiseError(
+        error.message ||
+          "Unable to process and save the document."
+      );
+    } finally {
+      setIsDigitising(false);
+    }
+  };
+=======
         const saveResponseText =
           await saveResponse.text();
 
@@ -1748,6 +2078,7 @@ function Digitise() {
         setIsDigitising(false);
       }
     };
+>>>>>>> 6b34ae2 (Update backend)
 
   // =========================================================
   // Render
@@ -1774,6 +2105,8 @@ function Digitise() {
         </p>
       </div>
 
+<<<<<<< HEAD
+=======
       {/* =====================================================
           Existing Document Indicator
       ===================================================== */}
@@ -1810,6 +2143,7 @@ function Digitise() {
         </div>
       )}
 
+>>>>>>> 6b34ae2 (Update backend)
       {/* =====================================================
           Tabs
       ===================================================== */}
@@ -2414,11 +2748,15 @@ function Digitise() {
               <Sparkles size={18} />
 
               {isDigitising
+<<<<<<< HEAD
+                ? "Digitising..."
+=======
                 ? isAddingPage
                   ? "Adding Page..."
                   : "Digitising..."
                 : isAddingPage
                 ? "Digitise & Add Page"
+>>>>>>> 6b34ae2 (Update backend)
                 : "Digitise with AI"}
 
             </button>
